@@ -206,24 +206,42 @@ button, input { font: inherit; color: inherit; }
   transform: rotateZ(-2.2deg);
   will-change: transform;
   touch-action: none;
-  /*
-   * 구멍 안쪽의 그늘. 평소에는 본체에 가려지고 뚫린 곳으로만 보인다. 카드가 들리면 조금 더 짙어진다.
-   * 위쪽 가장자리에서 떨어지는 초승달 그림자와 옅은 전체 그늘을 겹쳐 안으로 파인 것처럼 보이게 한다.
-   */
-  background:
-    radial-gradient(circle at 0 148.5px, #0000 4.5px, rgb(6 18 74 / 0.62) 7.5px),
-    radial-gradient(circle at 100% 148.5px, #0000 4.5px, rgb(6 18 74 / 0.62) 7.5px),
-    radial-gradient(circle at 0 146px, rgb(14 36 120 / calc(0.3 + 0.3 * var(--lit))) 7px, #0000 7.5px),
-    radial-gradient(circle at 100% 146px, rgb(14 36 120 / calc(0.3 + 0.3 * var(--lit))) 7px, #0000 7.5px);
-  /*
-   * 안쪽부터 카드 옆면, 바로 밑의 진한 접촉 그림자, 멀리 퍼지는 그림자 순서다.
-   * filter: drop-shadow 는 고해상도 화면에서 카드 글자를 흐리게 만들어서 쓰지 않는다.
-   */
-  box-shadow:
-    var(--ex) var(--ey) 0 0 #cfdaf0,
-    calc(var(--ex) * 1.4) calc(var(--ey) * 1.4 + 1px) 2px 0.5px rgb(14 40 130 / 0.5),
-    var(--sx) var(--sy) 30px rgb(10 28 96 / 0.42);
+  /* 기운 쪽으로 드러나는 카드 옆면 */
+  box-shadow: var(--ex) var(--ey) 0 0 #cfdaf0;
   user-select: none;
+}
+
+/*
+ * 카드 그림자. 구멍까지 뚫린 모양을 흐려서 카드 뒤에 깔기 때문에, 구멍으로 배경과 그림자가 그대로 비친다.
+ * filter: drop-shadow 를 카드 전체에 걸면 고해상도 화면에서 글자가 흐려지므로 그림자 층만 따로 흐린다.
+ * 마스크는 흐림보다 나중에 적용되어 그림자까지 잘라 버리므로, 왼쪽과 오른쪽 반쪽을 배경 그림으로 그린다.
+ */
+#card::before, #card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* 멀리 퍼지는 그림자 */
+#card::before {
+  background:
+    radial-gradient(circle at 0 146px, #0000 6.5px, rgb(10 28 96 / 0.42) 7px) left / 50% 100% no-repeat,
+    radial-gradient(circle at 100% 146px, #0000 6.5px, rgb(10 28 96 / 0.42) 7px) right / 50% 100% no-repeat;
+  filter: blur(15px);
+  transform: translate(var(--sx), var(--sy));
+}
+
+/* 바로 밑의 진한 접촉 그림자 */
+#card::after {
+  inset: -0.5px;
+  background:
+    radial-gradient(circle at 0 146.5px, #0000 6.5px, rgb(14 40 130 / 0.55) 7px) left / 50% 100% no-repeat,
+    radial-gradient(circle at 100% 146.5px, #0000 6.5px, rgb(14 40 130 / 0.55) 7px) right / 50% 100% no-repeat;
+  filter: blur(1px);
+  transform: translate(calc(var(--ex) * 1.4), calc(var(--ey) * 1.4 + 1px));
 }
 
 /* 카드 본체. 절취선 양 끝을 마스크로 실제로 뚫어서 구멍으로 뒤쪽 배경과 그림자가 보인다. */
@@ -904,7 +922,19 @@ body.dragging { cursor: grabbing; user-select: none; }
  * iOS 사파리는 메모리가 넘치면 페이지를 강제로 닫으므로 큰 면을 다시 그리는 효과를 줄인다. 다른 기기는 건드리지 않는다.
  */
 @supports (-webkit-touch-callout: none) {
-  #card { will-change: auto; }
+  /* 흐림 층 대신 box-shadow 를 쓰고, 구멍 안쪽은 바깥 그림자와 비슷한 옅은 그늘로 채운다. */
+  #card {
+    will-change: auto;
+    background:
+      radial-gradient(circle at 0 146px, rgb(14 36 120 / 0.28) 7px, #0000 7.5px),
+      radial-gradient(circle at 100% 146px, rgb(14 36 120 / 0.28) 7px, #0000 7.5px);
+    box-shadow:
+      var(--ex) var(--ey) 0 0 #cfdaf0,
+      calc(var(--ex) * 1.4) calc(var(--ey) * 1.4 + 1px) 2px 0.5px rgb(14 40 130 / 0.5),
+      var(--sx) var(--sy) 30px rgb(10 28 96 / 0.42);
+  }
+
+  #card::before, #card::after { display: none; }
 
   .band { background: linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px) 0 0 / 100% 4px; }
 
