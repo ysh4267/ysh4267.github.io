@@ -24,8 +24,8 @@ const REST_ROTATION = -2.2; // 쉴 때도 카드는 평면으로 살짝 돌아�
 const EDGE_DEPTH = 6; // 기울 때 보이는 카드 옆면 두께
 const CENTER_X = 498.5; // 장면 좌표에서 카드 중심
 const CENTER_Y = 353;
-const WIDE_MIN = 1060; // 이보다 넓으면 양옆에 수식과 수치를 둔다.
-const NARROW_MIN = 540; // 이보다 좁으면 카드와 그 주변만 보여 준다.
+const WIDE_MIN = 1060; // 이보다 넓으면 장면 전체 폭을 기준으로 맞춘다.
+const NARROW_MIN = 540; // 이보다 좁으면 카드 주변 폭을 기준으로 맞춘다.
 const SMALL_DESIGN = 300;
 const SIDE_GUTTER = 20;
 const IS_IOS = CSS.supports('-webkit-touch-callout', 'none'); // os.css 의 iOS 경량화와 같은 조건
@@ -76,7 +76,7 @@ function fillCard() {
   };
   set('c-since', String(GITHUB.since));
   set('c-count', `${GITHUB.publicRepos} PUBLIC REPOS SO FAR`);
-  set('c-owner', GITHUB.name);
+  set('c-name', GITHUB.name);
 
   const visits = readStore('hoos.visits', 0) + 1;
   writeStore('hoos.visits', visits);
@@ -230,7 +230,7 @@ async function refreshFromGitHub() {
 
 /**
  * 화면 폭에 맞춰 장면을 배치한다. 높이가 모자라면 줄이지 않고 페이지처럼 스크롤한다.
- * 수식과 수치는 양옆 자리가 있을 때만 보이고, 폭이 더 좁으면 카드가 그대로 크게 보이도록 카드 폭만 기준으로 삼는다.
+ * 폭이 좁으면 카드가 그대로 크게 보이도록 카드 폭만 기준으로 삼고, 양옆의 수식과 수치는 잘린 채로 둔다.
  */
 function fitScene() {
   const scene = document.getElementById('scene');
@@ -238,8 +238,6 @@ function fitScene() {
   const width = scene.clientWidth;
   const wide = width >= WIDE_MIN;
   const small = width < NARROW_MIN;
-  inner.classList.toggle('narrow', !wide);
-  inner.classList.toggle('small', small);
   const scale = Math.min(1, width / (wide ? 998 : small ? SMALL_DESIGN : NARROW_MIN));
   inner.style.setProperty('--fit', scale.toFixed(4));
   const span = Math.min(998, Math.round((width - SIDE_GUTTER * 2) / scale));

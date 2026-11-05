@@ -324,7 +324,7 @@ button, input { font: inherit; color: inherit; }
 
 .art span { position: relative; }
 
-/* 아이디, 연락처 세 줄, 손글씨가 아래 칸 높이를 고르게 나눠 쓴다. */
+/* 아이디, 항목 세 줄, 손글씨가 아래 칸 높이를 고르게 나눠 쓴다. */
 .stub {
   position: relative;
   flex: 1;
@@ -463,17 +463,14 @@ button, input { font: inherit; color: inherit; }
   top: 742px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 24px;
   color: var(--ink-2);
   font: 400 13.5px var(--display);
 }
 
-.owner { border-bottom: 1px dotted var(--ink-2); }
-
-.foot-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
-.foot-link.push { margin-left: auto; }
-.foot-link svg { display: block; }
-.foot-clock { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 시계는 평소 쉬고 있는 수식과 같은 밝기(0.84 × 0.4)로 물러나 있다가, 마우스를 올리면 아래 규칙으로 흰색이 된다. */
+.foot-clock { color: rgb(255 255 255 / 0.336); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* 마우스를 올리면 줄 뒤로 옅은 띠가 왼쪽부터 펼쳐지고 글자가 조금 밝아진다. */
 .ranks li, .foot > * { position: relative; isolation: isolate; transition: color 0.18s ease; }
@@ -552,10 +549,6 @@ button, input { font: inherit; color: inherit; }
 }
 
 .strip-tip.on { opacity: 1; }
-
-/* 폭이 좁아도 카드 좌우의 수식과 수치는 그대로 두어 잘린 채로 보인다. 바닥글만 한 줄에 들어가게 줄인다. */
-#scene-inner.small .owner, #scene-inner.small .clock-city { display: none; }
-#scene-inner.small .foot { gap: 10px; }
 
 /* ---------------------------------------------------------------- 왼쪽 사이드바 */
 
