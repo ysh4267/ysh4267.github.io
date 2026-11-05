@@ -1,0 +1,825 @@
+/* Hoon. 파란 설계도 위에 스프링 카드, 왼쪽에 유리 사이드바와 얇은 선 아이콘. */
+
+:root {
+  --blue: #2a64ff;
+  --ink: #fff;
+  --ink-2: rgb(255 255 255 / 0.72);
+  --ink-3: rgb(255 255 255 / 0.5);
+  --line: rgb(255 255 255 / 0.3);
+  --line-soft: rgb(255 255 255 / 0.14);
+  --glass: rgb(255 255 255 / 0.07);
+  --win: rgb(18 26 52 / 0.72);
+  --win-off: rgb(18 26 52 / 0.55);
+  --hover: rgb(255 255 255 / 0.1);
+  --active: rgb(255 255 255 / 0.2);
+  --pill: #1c1d22;
+  --focus: #cfe0ff;
+  --paper: #f6f8fc;
+  --paper-ink: #16233f;
+  --paper-mid: #2d3c5c;
+  --paper-soft: #7c88a0;
+  --rail: 72px;
+  --mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  --sans: 'Pretendard Variable', Pretendard, Figtree, -apple-system, 'Malgun Gothic', system-ui, sans-serif;
+  --display: Figtree, 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif;
+  --hand: Caveat, 'Segoe Script', cursive;
+  --spring: cubic-bezier(0.22, 0.8, 0.2, 1);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; overflow: hidden; }
+
+body {
+  background: var(--blue);
+  color: var(--ink);
+  font: 15px/1.6 var(--sans);
+}
+
+button, input { font: inherit; color: inherit; }
+
+[hidden] { display: none !important; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- 설계도 장면 */
+
+/* 장면은 스크롤되는 한 장의 페이지다. 위에 언어 순위, 가운데 카드 구역, 아래에 바닥글과 활동 기록이 온다. */
+#scene {
+  position: fixed;
+  inset: 0 0 0 var(--rail);
+  overflow: hidden auto;
+  background-color: var(--blue);
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.28) transparent;
+}
+
+#scene-inner {
+  --page: 1045px;
+  position: absolute;
+  left: 50%;
+  top: max(0px, calc((100% - var(--page) * var(--fit, 1)) / 2));
+  width: 998px;
+  height: var(--page);
+  transform: translateX(-50%) scale(var(--fit, 1));
+  transform-origin: 50% 0;
+}
+
+.stage { position: absolute; left: 0; top: 100px; width: 998px; height: 812px; }
+
+/* 카드 구역을 두 가로줄로 묶고, 그 안에만 인쇄된 청사진 같은 옅은 줄무늬를 깐다. */
+.band {
+  position: absolute;
+  left: calc((998px - var(--span, 998px)) / 2);
+  top: 25px;
+  width: var(--span, 998px);
+  height: 684px;
+  border-block: 1px solid rgb(255 255 255 / 0.24);
+  background-image: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 4px);
+}
+
+.ranks {
+  position: absolute;
+  left: 464px;
+  top: 12px;
+  width: 253px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: rgb(255 255 255 / 0.84);
+  font: 400 10.5px/19.3px var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.ranks li { display: grid; grid-template-columns: 21px 1fr 32px 34px; align-items: center; }
+.rank-no { color: rgb(255 255 255 / 0.36); }
+.rank-name { display: flex; align-items: center; min-width: 0; text-transform: uppercase; white-space: nowrap; }
+.rank-name::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  margin: 0 8px;
+  background: repeating-linear-gradient(to right, rgb(255 255 255 / 0.42) 0 1px, transparent 1px 3.2px);
+}
+.rank-bar { display: block; height: 3px; background: rgb(255 255 255 / 0.2); }
+.rank-bar i { display: block; height: 100%; background: rgb(255 255 255 / 0.92); }
+.rank-count { text-align: right; }
+
+.rev {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 972px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0;
+  color: rgb(255 255 255 / 0.56);
+  font: 400 10.5px var(--mono);
+  letter-spacing: 0.03em;
+}
+
+.rev svg { flex: none; fill: none; stroke: currentColor; stroke-width: 1; }
+
+.blueprint, .overlay { position: absolute; inset: 0; pointer-events: none; }
+
+/* 포인터가 닿기 전에는 설계 정보가 흐리게 물러나 있다가, 잡는 순간 함께 밝아진다. */
+.blueprint .anno, .notes, .telemetry { opacity: calc(0.4 + 0.6 * var(--live, 0)); }
+
+.blueprint .reach { fill: none; stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 8 6; }
+.blueprint .corner { fill: none; stroke: #fff; stroke-width: 1.2; }
+.blueprint .axis { stroke: var(--line); stroke-width: 1; }
+.blueprint .orbit { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 1.5 4; }
+.blueprint .dim { fill: none; stroke: var(--ink-2); stroke-width: 1; }
+.blueprint text { fill: var(--ink-2); font: 400 10px var(--mono); letter-spacing: 0.1em; }
+.blueprint text.mid { text-anchor: middle; }
+.blueprint text.faint { fill: var(--ink-3); }
+
+.notes {
+  position: absolute;
+  left: 0;
+  top: 92px;
+  margin: 0;
+  color: rgb(255 255 255 / 0.84);
+  font: 400 10px/14.2px var(--mono);
+  letter-spacing: 0.04em;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.notes b { font-weight: 400; color: var(--ink-3); letter-spacing: 0.12em; }
+
+.telemetry {
+  position: absolute;
+  left: 763px;
+  top: 92px;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  margin: 0;
+  color: rgb(255 255 255 / 0.84);
+  font: 400 10px/14.2px var(--mono);
+  letter-spacing: 0.04em;
+  white-space: pre;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.telemetry dt { color: var(--ink-3); }
+.telemetry dd { margin: 0; }
+
+/* ---------------------------------------------------------------- GitHub 카드 */
+
+.card-host {
+  position: absolute;
+  left: 380.5px;
+  top: 207px;
+  width: 236px;
+  height: 292px;
+  perspective: 900px;
+}
+
+#ghost {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed #fff;
+  opacity: calc(0.2 + 0.8 * var(--live, 0));
+}
+
+#card {
+  --lx: 50%;
+  --ly: 50%;
+  --lit: 0;
+  --la: 335deg;
+  --sx: 0px;
+  --sy: 14px;
+  --ex: 0px;
+  --ey: 0px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  transform: rotateZ(-2.2deg);
+  will-change: transform;
+  touch-action: none;
+  /* 안쪽부터 카드 옆면, 바로 밑의 진한 접촉 그림자, 멀리 퍼지는 그림자 순서다. */
+  box-shadow:
+    var(--ex) var(--ey) 0 0.5px #dfe7f7,
+    calc(var(--ex) * 1.4) calc(var(--ey) * 1.4 + 1px) 2px 0.5px rgb(14 40 130 / 0.5),
+    var(--sx) var(--sy) 30px rgb(10 28 96 / 0.42);
+  user-select: none;
+}
+
+/* 그림 둘레의 유리 테두리. 쉴 때는 고른 은빛이고, 조명이 켜지면 빛이 닿는 쪽만 하얗게 번진다. */
+.rim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 146px;
+  padding: 2px 2px 0;
+  border-radius: 10px 10px 0 0;
+  background:
+    conic-gradient(
+      from var(--la),
+      rgb(255 255 255 / calc(var(--lit) * 0.96)),
+      rgb(255 255 255 / 0) 16%,
+      rgb(255 255 255 / 0) 84%,
+      rgb(255 255 255 / calc(var(--lit) * 0.96))
+    ),
+    linear-gradient(rgb(178 188 206 / 0.9), rgb(178 188 206 / 0.9));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.art {
+  position: relative;
+  flex: 0 0 146px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: #fff;
+  color: var(--paper-ink);
+  font: 500 9px var(--mono);
+  letter-spacing: 0.14em;
+}
+
+/* 프로필 사진은 자르지 않는다. 그림이 오른쪽 아래 끝까지 이어지므로 그 모서리에 맞춰 붙인다. */
+.art img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 100% 100%;
+}
+
+.art span { position: relative; }
+
+/* 아이디, 연락처 세 줄, 손글씨가 아래 칸 높이를 고르게 나눠 쓴다. */
+.stub {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 13px 26px 15px 15px;
+  border-top: 1.5px dashed #c6cedd;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #fbfcff, var(--paper));
+  color: var(--paper-ink);
+}
+
+.notch {
+  position: absolute;
+  top: 139.5px;
+  width: 8px;
+  height: 13px;
+  background: color-mix(in srgb, #2158e6, #16307e calc(var(--lit) * 100%));
+}
+
+.notch.left { left: -1.5px; border-radius: 0 6.5px 6.5px 0; }
+.notch.right { right: -1.5px; border-radius: 6.5px 0 0 6.5px; }
+
+.num { display: flex; align-items: baseline; gap: 9px; }
+.num small { color: #8a95ab; font: 400 11px var(--mono); letter-spacing: 0.04em; }
+.num b { font: 700 31px/1 var(--display); letter-spacing: -0.015em; color: var(--paper-ink); }
+
+/* 왼쪽 항목 이름은 옅고 가늘게, 오른쪽 내용은 진하게 해서 한눈에 나뉘게 한다. */
+.stub dl {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  row-gap: 8px;
+  margin: 6.5px 0 0;
+  font: 400 10px/1.2 var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.stub dt { color: #8a95ab; font-weight: 400; }
+.stub dd { margin: 0; font-weight: 500; text-transform: uppercase; white-space: nowrap; }
+.stub dd a { color: var(--paper-ink); text-decoration: none; }
+.stub dd a:hover { text-decoration: underline; }
+
+.hand {
+  margin: auto 0 0;
+  color: var(--paper-mid);
+  font: 500 16px/1.1 var(--hand);
+  white-space: nowrap;
+  /* 손으로 쓴 줄이라 인쇄된 줄보다 조금 더 올라간다. */
+  transform: rotate(-1.8deg);
+  transform-origin: 0 100%;
+}
+
+.side {
+  position: absolute;
+  right: 8px;
+  bottom: 11px;
+  color: #98a3b8;
+  font: 400 8px var(--mono);
+  letter-spacing: 0.14em;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* 조명이 닿는 자리는 밝게 두고, 맞은편만 살짝 어두워진다. */
+.gloss {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--lx) var(--ly), #fff, rgb(244 247 253) 45%, rgb(218 226 243) 100%);
+  mix-blend-mode: multiply;
+  opacity: var(--lit);
+  pointer-events: none;
+}
+
+.blurb {
+  position: absolute;
+  left: 199px;
+  top: 523px;
+  width: 600px;
+  margin: 0;
+  color: rgb(255 255 255 / 0.72);
+  font: 400 10.5px/16px var(--mono);
+  letter-spacing: 0.08em;
+  text-align: center;
+  pointer-events: none;
+}
+
+.claim {
+  position: absolute;
+  left: 430px;
+  top: 594px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 137px;
+  height: 38px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #fff, #e8efff);
+  box-shadow: 0 8px 20px rgb(10 28 96 / 0.32), inset 0 1px 0 #fff;
+  color: #1f55d8;
+  font: 600 14px var(--sans);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: transform 0.18s var(--spring), box-shadow 0.18s var(--spring);
+}
+
+.claim:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgb(10 28 96 / 0.38), inset 0 1px 0 #fff; }
+.claim:active { transform: translateY(1px) scale(0.985); box-shadow: 0 3px 8px rgb(10 28 96 / 0.34), inset 0 1px 0 #fff; }
+
+/* 버튼에 올리거나 누르면 설계 도구처럼 네 모서리 손잡이와 가로, 세로 치수가 나타난다. */
+.spec {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.spec path { fill: none; stroke: rgb(255 255 255 / 0.66); stroke-width: 1; }
+.spec .box { stroke: rgb(255 255 255 / 0.9); }
+.spec rect { fill: #fff; }
+.spec text { fill: #fff; font: 600 10px var(--display); text-anchor: middle; dominant-baseline: central; }
+
+.claim:active .spec, .claim:focus-visible .spec { opacity: 1; }
+@media (hover: hover) { .claim:hover .spec { opacity: 1; } }
+
+.count {
+  position: absolute;
+  left: 199px;
+  top: 646px;
+  width: 600px;
+  margin: 0;
+  color: var(--ink-3);
+  font: 400 10px var(--mono);
+  letter-spacing: 0.14em;
+  text-align: center;
+  pointer-events: none;
+}
+
+.foot {
+  position: absolute;
+  left: calc((998px - var(--span, 998px)) / 2);
+  width: var(--span, 998px);
+  top: 742px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: var(--ink-2);
+  font: 400 13.5px var(--display);
+}
+
+.owner { border-bottom: 1px dotted var(--ink-2); }
+
+.foot-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
+.foot-link.push { margin-left: auto; }
+.foot-link:hover { text-decoration: underline; }
+.foot-link svg { display: block; }
+
+/* 항상 한 줄이고 칸 사이를 7px 이상 띄운다. 폭이 모자라면 보여 줄 칸을 card.js 의 fitStrip 이 고른다. */
+#strip {
+  position: absolute;
+  left: calc((998px - var(--span, 998px)) / 2);
+  width: var(--span, 998px);
+  top: 794px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#strip i {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.2);
+}
+
+#strip i.on { background: rgb(255 255 255 / 0.76); }
+#strip i.busy { border-radius: 50%; background: #fff; }
+#strip i.today { background: #fff; box-shadow: 0 0 0 3px rgb(255 255 255 / 0.22); }
+#strip i.ahead { border: 1px solid rgb(255 255 255 / 0.42); background: none; }
+
+#scene-inner.narrow .notes, #scene-inner.narrow .telemetry { display: none; }
+#scene-inner.narrow .ranks { left: 372.5px; }
+#scene-inner.small .blueprint .far, #scene-inner.small .owner { display: none; }
+#scene-inner.small .foot { gap: 14px; }
+
+/* ---------------------------------------------------------------- 왼쪽 사이드바 */
+
+#sidebar {
+  position: fixed;
+  z-index: 6000;
+  inset: 0 auto 0 0;
+  width: var(--rail);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  overflow-y: auto;
+  background: var(--glass);
+  border-right: 1px solid rgb(255 255 255 / 0.2);
+  box-shadow: inset 1px 0 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  scrollbar-width: none;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: auto 0;
+}
+
+.rail-sep { flex: none; width: 22px; height: 1px; margin: 6px 0; background: rgb(255 255 255 / 0.22); }
+
+.rail-btn {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+}
+
+.rail-btn svg { display: block; }
+.rail-btn:hover { background: var(--hover); }
+.rail-btn.active { background: var(--active); }
+.rail-btn:active svg { transform: scale(0.92); }
+
+/* 열려 있는 도구는 왼쪽 가장자리에 작은 막대가 붙는다. */
+.rail-btn::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 0 2px 2px 0;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: height 0.2s var(--spring);
+}
+
+.rail-btn.open::before { height: 8px; }
+.rail-btn.active::before { height: 20px; }
+
+.pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.8);
+  pointer-events: none;
+}
+
+.tip {
+  --y: 0px;
+  position: fixed;
+  z-index: 9000;
+  top: 0;
+  left: 0;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--pill);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(var(--y) - 50%));
+  transition: transform 0.22s var(--spring), width 0.22s var(--spring), opacity 0.12s ease;
+}
+
+.tip.on { opacity: 1; }
+
+.tip-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  color: #fff;
+  font: 500 13.5px var(--sans);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- 창 */
+
+#desk {
+  position: fixed;
+  inset: 0 0 0 var(--rail);
+  z-index: 100;
+  pointer-events: none;
+}
+
+#windows { position: absolute; inset: 0; }
+
+.win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 14px;
+  background: var(--win);
+  box-shadow: 0 26px 70px rgb(6 16 60 / 0.5), 0 2px 8px rgb(6 16 60 / 0.3);
+  color: var(--ink);
+  pointer-events: auto;
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  transition: background-color 0.15s ease;
+}
+
+.win:not(.active) { background: var(--win-off); box-shadow: 0 14px 40px rgb(6 16 60 / 0.35); }
+
+.win-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 42px;
+  padding: 0 7px 0 14px;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: default;
+  touch-action: none;
+  user-select: none;
+}
+
+.win-icon { flex: none; display: grid; place-items: center; width: 16px; height: 16px; margin-right: 8px; }
+.win-icon svg { display: block; }
+
+.win-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.win:not(.active) .win-title { color: var(--ink-2); }
+
+.win-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.win-btn svg { display: block; }
+.win-btn:hover { background: var(--hover); color: #fff; }
+.win-btn.close:hover { background: #e5484d; color: #fff; }
+
+.win-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border-radius: 0 0 13px 13px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  scrollbar-color: rgb(255 255 255 / 0.25) transparent;
+}
+
+.win-body.flush { display: flex; overflow: hidden; }
+
+.app-frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.app-frame.loaded { opacity: 1; }
+
+/* 비활성 창의 iframe 은 클릭을 먼저 받아 창을 앞으로 가져온다. 끌 때는 모든 iframe 을 덮는다. */
+.win-shield { position: absolute; inset: 42px 0 0; display: none; border-radius: 0 0 13px 13px; }
+.win:not(.active) .win-shield, body.dragging .win-shield { display: block; }
+
+body.dragging { cursor: grabbing; user-select: none; }
+
+.win-edge { position: absolute; touch-action: none; }
+.edge-n { top: -4px; left: 10px; right: 10px; height: 8px; cursor: ns-resize; }
+.edge-s { bottom: -4px; left: 10px; right: 10px; height: 8px; cursor: ns-resize; }
+.edge-e { right: -4px; top: 10px; bottom: 10px; width: 8px; cursor: ew-resize; }
+.edge-w { left: -4px; top: 10px; bottom: 10px; width: 8px; cursor: ew-resize; }
+.edge-ne { top: -4px; right: -4px; width: 14px; height: 14px; cursor: nesw-resize; }
+.edge-nw { top: -4px; left: -4px; width: 14px; height: 14px; cursor: nwse-resize; }
+.edge-se { bottom: -4px; right: -4px; width: 14px; height: 14px; cursor: nwse-resize; }
+.edge-sw { bottom: -4px; left: -4px; width: 14px; height: 14px; cursor: nesw-resize; }
+
+.spinner { animation: spin 1.1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------- 창 안 내용 */
+
+.sheet { max-width: 62ch; padding: 22px 24px 26px; }
+
+.sheet-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+
+.tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--hover);
+}
+
+.sheet-title { min-width: 0; }
+.sheet h2 { margin: 0; font-size: 21px; font-weight: 650; line-height: 1.3; letter-spacing: -0.01em; }
+.summary { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 7px 16px; margin: 0; font-size: 14px; }
+.facts dt { color: var(--ink-3); }
+.facts dd { margin: 0; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--hover);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover { background: var(--active); }
+.btn.primary { background: #fff; border-color: #fff; color: #14306f; }
+.btn.primary:hover { background: #e8efff; }
+
+.field-note { margin: 12px 0 0; color: var(--ink-3); font-size: 13.5px; }
+
+/* ---------------------------------------------------------------- 찾기와 메뉴 */
+
+.launcher {
+  position: fixed;
+  z-index: 8500;
+  left: calc(50% + var(--rail) / 2);
+  top: 15vh;
+  width: min(560px, calc(100vw - var(--rail) - 32px));
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 16px;
+  background: rgb(18 26 52 / 0.8);
+  box-shadow: 0 30px 90px rgb(6 16 60 / 0.55);
+  transform: translateX(-50%);
+  backdrop-filter: blur(36px) saturate(160%);
+  -webkit-backdrop-filter: blur(36px) saturate(160%);
+}
+
+.launcher-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink-2);
+}
+
+.launcher-top svg { flex: none; display: block; }
+
+.launcher-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  color: #fff;
+  font-size: 17px;
+  appearance: none;
+}
+
+.launcher-input::placeholder { color: var(--ink-3); }
+.launcher-input::-webkit-search-cancel-button { display: none; }
+
+.launcher-list { max-height: min(56vh, 440px); overflow-y: auto; padding: 6px; scrollbar-color: rgb(255 255 255 / 0.25) transparent; }
+
+.launcher-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.launcher-item.on { background: var(--active); }
+
+.launcher-glyph {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--hover);
+}
+
+.launcher-glyph svg { display: block; }
+.launcher-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.launcher-name { font-size: 14.5px; font-weight: 600; }
+.launcher-summary { overflow: hidden; color: var(--ink-2); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.launcher-empty { margin: 0; padding: 14px 12px; color: var(--ink-2); font-size: 14px; }
+
+/* ---------------------------------------------------------------- 좁은 화면과 터치 */
+
+@media (hover: none) { .tip { display: none; } }
+
+@media (max-width: 640px) {
+  :root { --rail: 56px; }
+
+  .rail-btn::before { left: -8px; }
+  .win { border-radius: 0; border-width: 0; }
+  .win-body { border-radius: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip, .rail-btn::before, .claim, .spec, .app-frame { transition: none; }
+  .spinner { animation: none; }
+}

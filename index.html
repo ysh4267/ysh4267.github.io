@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#2f6aff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data:; connect-src https://api.github.com; frame-src https:; base-uri 'none'; form-action 'none'">
+  <title>Hoon</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="css/os.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div id="scene">
+    <div id="scene-inner">
+      <ol class="ranks" id="ranks" aria-label="주로 쓰는 기술"></ol>
+      <div class="stage">
+      <div class="band"></div>
+      <svg class="blueprint" viewBox="0 0 998 812" width="998" height="812" aria-hidden="true">
+
+        <g class="anno">
+        <text class="label far" x="268" y="81">REACH · 120 PX · LET GO BEYOND</text>
+        <rect class="reach" x="262" y="89" width="473" height="528"/>
+        <path class="corner" d="M262 103V89H276M721 89H735V103M735 603V617H721M276 617H262V603"/>
+
+        <line class="axis" x1="262" y1="353" x2="735" y2="353"/>
+        <line class="axis" x1="498.5" y1="89" x2="498.5" y2="617"/>
+        <circle class="orbit" cx="498.5" cy="353" r="220"/>
+
+        <path class="dim" d="M380.5 175V185M380.5 180H616.5M616.5 175V185"/>
+        <text class="label mid" x="498.5" y="172">236</text>
+        <path class="dim" d="M349 207H359M354 207V499M349 499H359"/>
+        <text class="label mid" transform="translate(346 353) rotate(-90)">292</text>
+
+        <text class="label" x="505" y="102">Y -1.8</text>
+        <text class="label far" x="268" y="348">-1.8</text>
+        <text class="label faint" x="366" y="348">-1</text>
+        <text class="label faint" x="620" y="348">+1</text>
+        <text class="label far" x="690" y="348">X +1.8</text>
+        </g>
+      </svg>
+
+      <pre class="notes"><b>TILT · AN UNDERDAMPED SPRING</b>
+ẍ = -k·x - 2ζ·ẋ
+k = 237.6   ζ = 7.5
+ω = √(k - ζ²) = 13.47 rad/s
+x(t) = e^(-ζt) · (d·cos ωt
+        + (v + ζd)/ω · sin ωt)
+θ = 10° · x,   |x| ≤ 1.8
+
+<b>LIGHT · CRITICALLY DAMPED</b>
+T = 0.4 s held · 0.8 s home
+lit: τ = 0.18 s in · 0.26 s out
+
+<b>REACH</b>
+followed 120 px past the edge,
+then let go
+dt ≤ 64 ms, solved exactly
+
+<b>FIG 0.4 · THE CARD, SPRUNG.</b></pre>
+
+      <dl class="telemetry" aria-hidden="true">
+        <dt>θX</dt><dd id="t-tx"></dd>
+        <dt>θY</dt><dd id="t-ty"></dd>
+        <dt>AIM</dt><dd id="t-aim"></dd>
+        <dt>X</dt><dd id="t-x"></dd>
+        <dt>Ẋ</dt><dd id="t-v"></dd>
+        <dt>LIGHT</dt><dd id="t-light"></dd>
+        <dt>LIT</dt><dd id="t-lit"></dd>
+        <dt></dt><dd id="t-state"></dd>
+      </dl>
+
+      <div class="card-host">
+        <div id="ghost"></div>
+        <article id="card" aria-label="GitHub 카드">
+          <div class="art">
+            <img src="assets/avatar.png" alt="GitHub 프로필 사진" draggable="false">
+            <span>GITHUB</span>
+            <span id="c-since"></span>
+          </div>
+          <div class="stub">
+            <div class="num"><small>ID</small><b>ysh4267</b></div>
+            <dl>
+              <dt>MAIL</dt><dd><a href="mailto:ysh4267@gmail.com">ysh4267@gmail.com</a></dd>
+              <dt>ON</dt><dd>Game</dd>
+              <dt>GIT</dt><dd><a href="https://github.com/ysh4267" target="_blank" rel="noopener">github.com/ysh4267</a></dd>
+            </dl>
+            <p class="hand" id="c-note"></p>
+            <span class="side">ISSUED BY HOON</span>
+          </div>
+          <div class="gloss"></div>
+          <div class="rim"></div>
+          <i class="notch left"></i><i class="notch right"></i>
+        </article>
+      </div>
+
+      <svg class="overlay" viewBox="0 0 998 812" width="998" height="812" aria-hidden="true">
+        <g id="sun" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round">
+          <circle r="6.2"/>
+          <path d="M0-14v3M0 11v3M-14 0h3M11 0h3M-9.9-9.9l2.1 2.1M7.8 7.8l2.1 2.1M-9.9 9.9l2.1-2.1M7.8-7.8l2.1-2.1"/>
+        </g>
+        <g id="markers" opacity="0">
+          <line id="aim-link" stroke="#fff" stroke-width="1" stroke-dasharray="2 3"/>
+          <circle id="aim-ring" r="5" fill="none" stroke="#fff" stroke-width="1.2"/>
+          <circle id="state-dot" r="2.6" fill="#fff"/>
+        </g>
+      </svg>
+
+      <p class="blurb">THIS IS MY GITHUB, ON A SPRING.<br>PULL IT AROUND AND LET GO;<br>IT FINDS ITS WAY HOME.</p>
+      <a class="claim" href="https://github.com/ysh4267" target="_blank" rel="noopener">
+        GitHub 열기
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+        <svg class="spec" viewBox="0 0 137 38" width="137" height="38" aria-hidden="true">
+          <path class="box" d="M.5.5H136.5V37.5H.5Z"/>
+          <path d="M147 .5H154M150.5 .5V8.5M150.5 29.5V37.5M147 37.5H154"/>
+          <text x="150.5" y="19" transform="rotate(-90 150.5 19)">38</text>
+          <path d="M.5 46V53M.5 49.5H53M84 49.5H136.5M136.5 46V53"/>
+          <text x="68.5" y="49.5">137</text>
+          <rect x="-2" y="-2" width="5" height="5"/><rect x="134" y="-2" width="5" height="5"/><rect x="-2" y="35" width="5" height="5"/><rect x="134" y="35" width="5" height="5"/>
+        </svg>
+      </a>
+      <p class="count" id="c-count"></p>
+
+      <footer class="foot">
+        <span>ysh4267.github.io</span>
+        <span class="owner" id="c-owner"></span>
+        <a class="foot-link push" href="mailto:ysh4267@gmail.com"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Email</a>
+        <a class="foot-link" href="https://github.com/ysh4267" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></a>
+      </footer>
+      <div id="strip" aria-label="최근 활동 기록"></div>
+      </div>
+      <p class="rev"><svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M5 .8 9.2 5 5 9.2 .8 5Z"/></svg><span id="c-rev"></span></p>
+    </div>
+  </div>
+
+  <main id="desk" aria-label="작업 공간"><div id="windows"></div></main>
+  <nav id="sidebar" aria-label="도구 모음"></nav>
+  <noscript>이 사이트는 자바스크립트가 필요해요.</noscript>
+</body>
+</html>
