@@ -1,5 +1,6 @@
 import { GITHUB } from './github-data.js';
 import { readStore, writeStore } from './dom.js';
+import { drawIcon, namedIcon } from './motion.js';
 
 /**
  * 배경의 GitHub 카드. 포인터가 닿는 범위 안에서 카드는 스프링으로 기울고, 조명은 따로 따라온다.
@@ -192,8 +193,17 @@ function fitScene() {
   fitStrip(span);
 }
 
+/** GitHub 버튼의 아이콘. 왼쪽 막대의 아이콘처럼 포인터를 올리면 선이 다시 그려진다. */
+function initClaim() {
+  const claim = document.querySelector('.claim');
+  const glyph = namedIcon('github', 17);
+  claim.querySelector('.spec').before(glyph);
+  claim.addEventListener('pointerenter', () => drawIcon(glyph, { duration: 480 }));
+}
+
 export function initCard() {
   fillCard();
+  initClaim();
   refreshFromGitHub();
   fitScene();
   window.addEventListener('resize', fitScene);
