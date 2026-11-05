@@ -1,8 +1,8 @@
-import { onToolsChange, toggleApp, toolApps, webApps, windowId } from './apps.js?v=cb35364110';
-import { h } from './dom.js?v=cb35364110';
-import { toggleLauncher } from './launcher.js?v=cb35364110';
-import { drawIcon, namedIcon, pulseRing } from './motion.js?v=cb35364110';
-import { isActive, isOpen, onWindowsChange } from './wm.js?v=cb35364110';
+import { onToolsChange, toggleApp, toolApps, webApps, windowId } from './apps.js?v=017ca12b3a';
+import { h } from './dom.js?v=017ca12b3a';
+import { toggleLauncher } from './launcher.js?v=017ca12b3a';
+import { drawIcon, namedIcon, pulseRing } from './motion.js?v=017ca12b3a';
+import { isActive, isOpen, onWindowsChange } from './wm.js?v=017ca12b3a';
 
 /**
  * 왼쪽 사이드바. 얇은 선 아이콘이 세로로 놓이고, 이름표 하나가 아이콘 사이를 미끄러져 다닌다.

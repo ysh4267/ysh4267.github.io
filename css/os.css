@@ -489,6 +489,7 @@ button, input { font: inherit; color: inherit; }
 }
 
 .foot > *::before { inset: -3px -7px; }
+.foot-clock::before { content: none; } /* 시계는 띠 없이 글자만 밝아진다. */
 
 @media (hover: hover) {
   .ranks li:hover, .foot > *:hover { color: #fff; }
