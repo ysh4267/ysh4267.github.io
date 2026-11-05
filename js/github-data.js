@@ -3,8 +3,8 @@ export const GITHUB = {
   "login": "ysh4267",
   "name": "YangJihoon",
   "since": 2017,
-  "publicRepos": 27,
-  "contributions": 3405,
+  "publicRepos": 28,
+  "contributions": 3418,
   "days": [
     [
       "2026-09-06",
@@ -248,7 +248,7 @@ export const GITHUB = {
     ],
     [
       "2026-11-05",
-      20
+      33
     ]
   ]
 };

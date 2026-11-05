@@ -95,14 +95,16 @@ button, input { font: inherit; color: inherit; }
 }
 
 .ranks li { display: grid; grid-template-columns: 21px 1fr 32px 34px; align-items: center; }
-.rank-no { color: rgb(255 255 255 / 0.36); }
+.rank-no { color: rgb(255 255 255 / 0.36); transition: color 0.18s ease; }
 .rank-name { display: flex; align-items: center; min-width: 0; text-transform: uppercase; white-space: nowrap; }
 .rank-name::after {
   content: "";
   flex: 1;
   height: 1px;
   margin: 0 8px;
-  background: repeating-linear-gradient(to right, rgb(255 255 255 / 0.42) 0 1px, transparent 1px 3.2px);
+  opacity: 0.42;
+  background: repeating-linear-gradient(to right, #fff 0 1px, transparent 1px 3.2px);
+  transition: opacity 0.18s ease;
 }
 .rank-bar { display: block; height: 3px; background: rgb(255 255 255 / 0.2); }
 .rank-bar i { display: block; height: 100%; background: rgb(255 255 255 / 0.92); }
@@ -452,8 +454,32 @@ button, input { font: inherit; color: inherit; }
 
 .foot-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
 .foot-link.push { margin-left: auto; }
-.foot-link:hover { text-decoration: underline; }
 .foot-link svg { display: block; }
+
+/* 마우스를 올리면 줄 뒤로 옅은 띠가 왼쪽부터 펼쳐지고 글자가 조금 밝아진다. */
+.ranks li, .foot > * { position: relative; isolation: isolate; transition: color 0.18s ease; }
+
+.ranks li::before, .foot > *::before {
+  content: "";
+  position: absolute;
+  inset: 0 -6px;
+  z-index: -1;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.1);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.26s var(--spring);
+  pointer-events: none;
+}
+
+.foot > *::before { inset: -3px -7px; }
+
+@media (hover: hover) {
+  .ranks li:hover, .foot > *:hover { color: #fff; }
+  .ranks li:hover::before, .foot > *:hover::before { transform: scaleX(1); }
+  .ranks li:hover .rank-no { color: rgb(255 255 255 / 0.7); }
+  .ranks li:hover .rank-name::after { opacity: 0.72; }
+}
 
 /* 항상 한 줄이고 칸 사이를 7px 이상 띄운다. 폭이 모자라면 보여 줄 칸을 card.js 의 fitStrip 이 고른다. */
 #strip {
@@ -477,6 +503,36 @@ button, input { font: inherit; color: inherit; }
 #strip i.busy { border-radius: 50%; background: #fff; }
 #strip i.today { background: #fff; box-shadow: 0 0 0 3px rgb(255 255 255 / 0.22); }
 #strip i.ahead { border: 1px solid rgb(255 255 255 / 0.42); background: none; }
+
+/* 칸마다 위아래와 좌우로 넓힌 감지 영역을 둬서 칸 사이를 지나는 동안 이름표가 끊기지 않는다. */
+#strip i { position: relative; transition: transform 0.16s var(--spring); }
+#strip i::after { content: ""; position: absolute; inset: -7px -4px; }
+
+@media (hover: hover) {
+  #strip i:hover { transform: scale(1.4); }
+}
+
+/* 칸 위의 이름표. 하나를 옮겨 다니므로 왼쪽 막대의 이름표처럼 미끄러진다. */
+.strip-tip {
+  --x: 0px;
+  position: absolute;
+  left: 0;
+  top: 762px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: var(--pill);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28);
+  color: #fff;
+  font: 500 12px/26px var(--sans);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(calc(var(--x) - 50%));
+  transition: transform 0.2s var(--spring), opacity 0.12s ease;
+}
+
+.strip-tip.on { opacity: 1; }
 
 #scene-inner.narrow .notes, #scene-inner.narrow .telemetry { display: none; }
 #scene-inner.narrow .ranks { left: 372.5px; }
@@ -852,7 +908,7 @@ body.dragging { cursor: grabbing; user-select: none; }
 
   .band { background: linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px) 0 0 / 100% 4px; }
 
-  .rank-name::after { background: linear-gradient(to right, rgb(255 255 255 / 0.42) 1px, transparent 1px) 0 0 / 3.2px 1px; }
+  .rank-name::after { background: linear-gradient(to right, #fff 1px, transparent 1px) 0 0 / 3.2px 1px; }
 
   .gloss {
     mix-blend-mode: normal;
@@ -874,6 +930,6 @@ body.dragging { cursor: grabbing; user-select: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tip, .rail-btn::before, .claim, .spec, .app-frame { transition: none; }
+  .tip, .rail-btn::before, .claim, .spec, .app-frame, .strip-tip, #strip i, .ranks li, .foot > *, .ranks li::before, .foot > *::before { transition: none; }
   .spinner { animation: none; }
 }

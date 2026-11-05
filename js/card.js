@@ -127,17 +127,53 @@ function fillStrip() {
     const day = dayKey(new Date(end.getFullYear(), end.getMonth(), end.getDate() - back));
     const count = counts.get(day) ?? 0;
     const cell = document.createElement('i');
+    const [, month, date] = day.split('-').map(Number);
     if (day > today) {
       cell.className = 'ahead';
-      cell.title = `${day} · 남은 날`;
+      cell.dataset.tip = `${month}월 ${date}일 · 남은 날`;
     } else {
-      cell.title = `${day} · ${counts.has(day) ? `활동 ${count}회` : '기록 없음'}`;
+      const activity = !counts.has(day) ? '기록 없음' : count > 0 ? `활동 ${count}회` : '활동 없음';
+      cell.dataset.tip = `${day === today ? '오늘' : `${month}월 ${date}일`} · ${activity}`;
       if (day === today) cell.className = 'today';
       else if (count >= busy) cell.className = 'on busy';
       else if (count > 0) cell.className = 'on';
     }
     strip.append(cell);
   }
+}
+
+/** 활동 칸의 이름표. 하나를 옮겨 다니며 날짜와 횟수를 보여 준다. 터치에서는 손을 뗀 뒤에도 잠시 남는다. */
+function initStripTip() {
+  const strip = document.getElementById('strip');
+  const tip = document.createElement('div');
+  tip.className = 'strip-tip';
+  tip.setAttribute('aria-hidden', 'true');
+  strip.after(tip);
+  let hideTimer = null;
+
+  const show = (cell) => {
+    clearTimeout(hideTimer);
+    const appearing = !tip.classList.contains('on');
+    tip.textContent = cell.dataset.tip;
+    const half = tip.offsetWidth / 2;
+    const center = strip.offsetLeft + cell.offsetLeft + cell.offsetWidth / 2;
+    // 처음 나타날 때는 제자리에 바로 놓고, 그다음부터 미끄러진다. 양 끝에서는 줄 밖으로 나가지 않게 막는다.
+    if (appearing) tip.style.transition = 'none';
+    tip.style.setProperty('--x', `${clamp(center, strip.offsetLeft + half, strip.offsetLeft + strip.offsetWidth - half)}px`);
+    if (appearing) {
+      void tip.offsetWidth;
+      tip.style.transition = '';
+    }
+    tip.classList.add('on');
+  };
+
+  strip.addEventListener('pointerover', (event) => {
+    if (event.target.tagName === 'I') show(event.target);
+  });
+  strip.addEventListener('pointerleave', (event) => {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => tip.classList.remove('on'), event.pointerType === 'mouse' ? 80 : 1600);
+  });
 }
 
 /**
@@ -215,6 +251,7 @@ function initClaim() {
 export function initCard() {
   fillCard();
   initClaim();
+  initStripTip();
   refreshFromGitHub();
   fitScene();
   window.addEventListener('resize', fitScene);
