@@ -1,4 +1,4 @@
-import { icon } from './icons.js?v=017ca12b3a';
+import { icon } from './icons.js?v=db0a5dc043';
 
 const SHAPES = 'path, circle, rect, line, polyline, polygon, ellipse';
 const DRAW_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
@@ -17,6 +17,7 @@ const MOTIONS = {
   truck: [{ transform: 'translateX(-4px)' }, { transform: 'translateX(1.5px)' }, { transform: 'translateX(0)' }],
   dna: [{ transform: 'rotate(-40deg)' }, { transform: 'rotate(0)' }],
   backpack: [{ transform: 'translateY(0)' }, { transform: 'translateY(-3px)' }, { transform: 'translateY(0)' }],
+  box: [{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(-3.5px) rotate(4deg)' }, { transform: 'translateY(0) rotate(0)' }],
   blocks: [{ transform: 'scale(0.86)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }],
   question: [{ transform: 'rotate(-8deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(0)' }],
   search: [{ transform: 'translate(-1.5px, -1.5px)' }, { transform: 'translate(0, 0)' }],

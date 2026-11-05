@@ -43,4 +43,12 @@ export const WEB_APPS = [
     url: 'https://ysh4267.github.io/escape-2d/',
     size: [1280, 800],
   },
+  {
+    id: 'box',
+    name: 'Box',
+    summary: '누르면 툭 소리를 내며 튀어 오르는 상자',
+    icon: 'box',
+    url: 'https://ysh4267.github.io/box/',
+    size: [1006, 782],
+  },
 ];
