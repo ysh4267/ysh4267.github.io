@@ -157,19 +157,29 @@ function fitStrip(span) {
   });
 }
 
-/** 공개 숫자만 GitHub 에서 다시 읽어 온다. 실패하면 구워 둔 값을 그대로 쓴다. */
+/** 새 사진을 다 받은 뒤에 바꿔서 카드 그림이 깜빡이지 않게 한다. */
+function showAvatar(url) {
+  const next = new Image();
+  next.onload = () => {
+    document.querySelector('.art img').src = next.src;
+  };
+  next.src = `${url}&s=512`;
+}
+
+/** 공개 저장소 수와 프로필 사진을 GitHub 에서 다시 읽어 온다. 실패하면 구워 둔 숫자와 사본을 그대로 쓴다. */
 async function refreshFromGitHub() {
   try {
     const cached = readStore('hoos.github', null);
     let live = cached;
-    if (!cached || Date.now() - cached.at > 3600000) {
+    if (!cached?.avatarUrl || Date.now() - cached.at > 3600000) {
       const response = await fetch(`https://api.github.com/users/${GITHUB.login}`, { headers: { Accept: 'application/vnd.github+json' } });
       if (!response.ok) return;
       const profile = await response.json();
-      live = { at: Date.now(), publicRepos: profile.public_repos };
+      live = { at: Date.now(), publicRepos: profile.public_repos, avatarUrl: profile.avatar_url };
       writeStore('hoos.github', live);
     }
     document.getElementById('c-count').textContent = `${live.publicRepos} PUBLIC REPOS SO FAR`;
+    showAvatar(live.avatarUrl);
   } catch {
     // 네트워크가 막혀도 카드는 구워 둔 숫자로 보인다.
   }
