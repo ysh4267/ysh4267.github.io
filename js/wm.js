@@ -1,5 +1,5 @@
-import { h, clamp, readStore, writeStore } from './dom.js';
-import { drawIcon, namedIcon, spinnerIcon } from './motion.js';
+import { h, clamp, readStore, writeStore } from './dom.js?v=cb35364110';
+import { drawIcon, namedIcon, spinnerIcon } from './motion.js?v=cb35364110';
 
 /** 창 관리자. 제목 표시줄을 끌어 옮기고, 가장자리를 끌어 크기를 바꾼다. 위치와 크기는 도구별로 기억한다. */
 const MIN_WIDTH = 300;
