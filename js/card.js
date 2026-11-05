@@ -31,7 +31,7 @@ const STRIP_CELLS = 61; // 약 두 달
 const STRIP_GAP = 7;
 const STRIP_PITCH = 9 + STRIP_GAP;
 // 맨 위 순위는 사용자가 직접 정한 점수다. GitHub 에서 읽어 오지 않으니 바꾸려면 여기를 고친다.
-const RANKS = [['C#', 6], ['Unity', 6], ['C++', 4], ['Python', 3]];
+const RANKS = [['C#', 6], ['Unity', 6], ['C++', 4], ['Python', 3], ['Other', 1]];
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const signed = (value, digits = 2) => {
