@@ -77,7 +77,8 @@ button, input { font: inherit; color: inherit; }
   width: var(--span, 998px);
   height: 684px;
   border-block: 1px solid rgb(255 255 255 / 0.24);
-  background-image: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 4px);
+  /* 넓은 면이라 repeating-linear-gradient 대신 작은 무늬를 반복한다. 사파리에서 훨씬 가볍다. */
+  background: linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px) 0 0 / 100% 4px;
 }
 
 .ranks {
@@ -102,7 +103,7 @@ button, input { font: inherit; color: inherit; }
   flex: 1;
   height: 1px;
   margin: 0 8px;
-  background: repeating-linear-gradient(to right, rgb(255 255 255 / 0.42) 0 1px, transparent 1px 3.2px);
+  background: linear-gradient(to right, rgb(255 255 255 / 0.42) 1px, transparent 1px) 0 0 / 3.2px 1px;
 }
 .rank-bar { display: block; height: 3px; background: rgb(255 255 255 / 0.2); }
 .rank-bar i { display: block; height: 100%; background: rgb(255 255 255 / 0.92); }
@@ -202,7 +203,6 @@ button, input { font: inherit; color: inherit; }
   inset: 0;
   border-radius: 10px;
   transform: rotateZ(-2.2deg);
-  will-change: transform;
   touch-action: none;
   /*
    * 구멍 안쪽의 그늘. 평소에는 본체에 가려지고 뚫린 곳으로만 보인다. 카드가 들리면 조금 더 짙어진다.
@@ -360,8 +360,8 @@ button, input { font: inherit; color: inherit; }
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(circle at var(--lx) var(--ly), #fff, rgb(244 247 253) 45%, rgb(218 226 243) 100%);
-  mix-blend-mode: multiply;
+  /* mix-blend-mode 는 3D 로 움직이는 카드에서 사파리 부담이 커서 옅은 그늘을 그냥 얹는다. */
+  background: radial-gradient(circle at var(--lx) var(--ly), rgb(70 95 190 / 0), rgb(70 95 190 / 0.06) 45%, rgb(70 95 190 / 0.19) 100%);
   opacity: var(--lit);
   pointer-events: none;
 }
@@ -834,11 +834,23 @@ body.dragging { cursor: grabbing; user-select: none; }
 
 /* ---------------------------------------------------------------- 좁은 화면과 터치 */
 
-/* 터치에서는 손가락으로 누르기 좋게 버튼만 조금 키운다. 막대 폭은 그대로다. */
+/*
+ * 터치에서는 손가락으로 누르기 좋게 버튼만 조금 키운다. 막대 폭은 그대로다.
+ * 아이폰 사파리는 메모리가 넘치면 페이지를 강제로 닫으므로, 큰 면을 다시 그리는 효과를 뺀다.
+ * 창과 찾기의 배경 흐림은 아래 내용이 거의 안 보이는 불투명한 색으로 바꾸고, 테두리 빛은 고른 은빛만 둔다.
+ */
 @media (hover: none) {
   :root { --rail-btn: 40px; }
 
   .tip { display: none; }
+
+  .win, .win:not(.active), .launcher {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(18 26 52 / 0.97);
+  }
+
+  .rim { background: rgb(178 188 206 / 0.9); }
 }
 
 @media (max-width: 640px) {

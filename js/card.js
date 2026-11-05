@@ -214,6 +214,7 @@ export function initCard() {
   const stateDot = document.getElementById('state-dot');
   const link = document.getElementById('aim-link');
   const sun = document.getElementById('sun');
+  const overlay = document.querySelector('.overlay');
   const out = {
     tx: document.getElementById('t-tx'),
     ty: document.getElementById('t-ty'),
@@ -279,6 +280,8 @@ export function initCard() {
     document.getElementById('markers').style.opacity = lit.toFixed(3);
     sun.setAttribute('transform', `translate(${(CENTER_X + facing.x * SUN_RADIUS).toFixed(2)} ${(CENTER_Y + facing.y * SUN_RADIUS).toFixed(2)})`);
     sun.style.opacity = lit.toFixed(3);
+    // 카드 위를 덮는 큰 층이라 쉬는 동안에는 아예 그리지 않는다. 휴대폰 메모리를 아낀다.
+    overlay.style.visibility = lit > 0.002 ? 'visible' : 'hidden';
 
     out.tx.textContent = `${signed(thetaX)}°`;
     out.ty.textContent = `${signed(thetaY)}°`;
