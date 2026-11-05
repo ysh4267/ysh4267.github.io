@@ -5,7 +5,7 @@ import { drawIcon, namedIcon, pulseRing } from './motion.js';
 import { isActive, isOpen, onWindowsChange } from './wm.js';
 
 /**
- * 왼쪽 유리 사이드바. 얇은 선 아이콘이 세로로 놓이고, 이름표 하나가 아이콘 사이를 미끄러져 다닌다.
+ * 왼쪽 사이드바. 얇은 선 아이콘이 세로로 놓이고, 이름표 하나가 아이콘 사이를 미끄러져 다닌다.
  * 이름표를 항목마다 따로 띄우지 않고 하나를 옮겨야 글자가 굴러 바뀌는 움직임이 나온다.
  */
 const TIP_HIDE_DELAY = 90;

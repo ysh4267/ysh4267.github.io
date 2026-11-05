@@ -1,4 +1,4 @@
-/* Hoon. 파란 설계도 위에 스프링 카드, 왼쪽에 유리 사이드바와 얇은 선 아이콘. */
+/* Hoon. 파란 설계도 위에 스프링 카드, 왼쪽에 어두운 사이드바와 얇은 선 아이콘. */
 
 :root {
   --blue: #2a64ff;
@@ -7,7 +7,6 @@
   --ink-3: rgb(255 255 255 / 0.5);
   --line: rgb(255 255 255 / 0.3);
   --line-soft: rgb(255 255 255 / 0.14);
-  --glass: rgb(255 255 255 / 0.07);
   --win: rgb(18 26 52 / 0.72);
   --win-off: rgb(18 26 52 / 0.55);
   --hover: rgb(255 255 255 / 0.1);
@@ -18,7 +17,9 @@
   --paper-ink: #16233f;
   --paper-mid: #2d3c5c;
   --paper-soft: #7c88a0;
-  --rail: 72px;
+  --rail: 48px;
+  --rail-btn: 36px;
+  --rail-bg: #161618;
   --mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, ui-monospace, monospace;
   --sans: 'Pretendard Variable', Pretendard, Figtree, -apple-system, 'Malgun Gothic', system-ui, sans-serif;
   --display: Figtree, 'Pretendard Variable', Pretendard, 'Malgun Gothic', system-ui, sans-serif;
@@ -464,11 +465,8 @@ button, input { font: inherit; color: inherit; }
   flex-direction: column;
   padding: 16px 0;
   overflow-y: auto;
-  background: var(--glass);
-  border-right: 1px solid rgb(255 255 255 / 0.2);
-  box-shadow: inset 1px 0 0 rgb(255 255 255 / 0.06);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  background: var(--rail-bg);
+  border-right: 1px solid rgb(255 255 255 / 0.08);
   scrollbar-width: none;
 }
 
@@ -480,34 +478,34 @@ button, input { font: inherit; color: inherit; }
   margin: auto 0;
 }
 
-.rail-sep { flex: none; width: 22px; height: 1px; margin: 6px 0; background: rgb(255 255 255 / 0.22); }
+.rail-sep { flex: none; width: 20px; height: 1px; margin: 6px 0; background: rgb(255 255 255 / 0.14); }
 
 .rail-btn {
   position: relative;
   flex: none;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: var(--rail-btn);
+  height: var(--rail-btn);
   padding: 0;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: transparent;
-  color: var(--ink);
+  color: rgb(255 255 255 / 0.78);
   cursor: pointer;
-  transition: background-color 0.16s ease;
+  transition: background-color 0.16s ease, color 0.16s ease;
 }
 
 .rail-btn svg { display: block; }
-.rail-btn:hover { background: var(--hover); }
-.rail-btn.active { background: var(--active); }
+.rail-btn:hover { background: var(--hover); color: #fff; }
+.rail-btn.active { background: var(--active); color: #fff; }
 .rail-btn:active svg { transform: scale(0.92); }
 
 /* 열려 있는 도구는 왼쪽 가장자리에 작은 막대가 붙는다. */
 .rail-btn::before {
   content: "";
   position: absolute;
-  left: -16px;
+  left: calc((var(--rail-btn) - var(--rail)) / 2);
   top: 50%;
   width: 3px;
   height: 0;
@@ -809,12 +807,14 @@ body.dragging { cursor: grabbing; user-select: none; }
 
 /* ---------------------------------------------------------------- 좁은 화면과 터치 */
 
-@media (hover: none) { .tip { display: none; } }
+/* 터치에서는 손가락으로 누르기 좋게 버튼만 조금 키운다. 막대 폭은 그대로다. */
+@media (hover: none) {
+  :root { --rail-btn: 40px; }
+
+  .tip { display: none; }
+}
 
 @media (max-width: 640px) {
-  :root { --rail: 56px; }
-
-  .rail-btn::before { left: -8px; }
   .win { border-radius: 0; border-width: 0; }
   .win-body { border-radius: 0; }
 }
