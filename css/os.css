@@ -509,7 +509,7 @@ button, input { font: inherit; color: inherit; }
 #strip i::after { content: ""; position: absolute; inset: -7px -4px; }
 
 @media (hover: hover) {
-  #strip i:hover { transform: scale(1.4); }
+  #strip i:not(.ahead):hover { transform: scale(1.4); }
 }
 
 /* 칸 위의 이름표. 하나를 옮겨 다니므로 왼쪽 막대의 이름표처럼 미끄러진다. */

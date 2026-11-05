@@ -130,7 +130,6 @@ function fillStrip() {
     const [, month, date] = day.split('-').map(Number);
     if (day > today) {
       cell.className = 'ahead';
-      cell.dataset.tip = `${month}월 ${date}일 · 남은 날`;
     } else {
       const activity = !counts.has(day) ? '기록 없음' : count > 0 ? `활동 ${count}회` : '활동 없음';
       cell.dataset.tip = `${day === today ? '오늘' : `${month}월 ${date}일`} · ${activity}`;
@@ -142,7 +141,7 @@ function fillStrip() {
   }
 }
 
-/** 활동 칸의 이름표. 하나를 옮겨 다니며 날짜와 횟수를 보여 준다. 터치에서는 손을 뗀 뒤에도 잠시 남는다. */
+/** 활동 칸의 이름표. 하나를 옮겨 다니며 날짜와 횟수를 보여 준다. 앞으로 올 날에는 뜨지 않는다. 터치에서는 손을 뗀 뒤에도 잠시 남는다. */
 function initStripTip() {
   const strip = document.getElementById('strip');
   const tip = document.createElement('div');
@@ -168,7 +167,13 @@ function initStripTip() {
   };
 
   strip.addEventListener('pointerover', (event) => {
-    if (event.target.tagName === 'I') show(event.target);
+    if (event.target.tagName !== 'I') return;
+    if (event.target.dataset.tip) {
+      show(event.target);
+    } else {
+      clearTimeout(hideTimer);
+      tip.classList.remove('on');
+    }
   });
   strip.addEventListener('pointerleave', (event) => {
     clearTimeout(hideTimer);
