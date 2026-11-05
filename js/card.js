@@ -28,6 +28,7 @@ const WIDE_MIN = 1060; // 이보다 넓으면 양옆에 수식과 수치를 둔�
 const NARROW_MIN = 540; // 이보다 좁으면 카드와 그 주변만 보여 준다.
 const SMALL_DESIGN = 300;
 const SIDE_GUTTER = 20;
+const IS_IOS = CSS.supports('-webkit-touch-callout', 'none'); // os.css 의 iOS 경량화와 같은 조건
 const STRIP_CELLS = 61; // 약 두 달
 const STRIP_GAP = 7;
 const STRIP_PITCH = 9 + STRIP_GAP;
@@ -280,8 +281,8 @@ export function initCard() {
     document.getElementById('markers').style.opacity = lit.toFixed(3);
     sun.setAttribute('transform', `translate(${(CENTER_X + facing.x * SUN_RADIUS).toFixed(2)} ${(CENTER_Y + facing.y * SUN_RADIUS).toFixed(2)})`);
     sun.style.opacity = lit.toFixed(3);
-    // 카드 위를 덮는 큰 층이라 쉬는 동안에는 아예 그리지 않는다. 휴대폰 메모리를 아낀다.
-    overlay.style.visibility = lit > 0.002 ? 'visible' : 'hidden';
+    // 카드 위를 덮는 큰 층이라 아이폰과 아이패드에서는 쉬는 동안 아예 그리지 않아 메모리를 아낀다.
+    if (IS_IOS) overlay.style.visibility = lit > 0.002 ? 'visible' : 'hidden';
 
     out.tx.textContent = `${signed(thetaX)}°`;
     out.ty.textContent = `${signed(thetaY)}°`;
