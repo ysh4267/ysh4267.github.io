@@ -82,7 +82,7 @@ button, input { font: inherit; color: inherit; }
 
 .ranks {
   position: absolute;
-  left: 464px;
+  left: var(--ranks-left, 464px);
   top: 12px;
   width: 253px;
   margin: 0;
@@ -473,6 +473,7 @@ button, input { font: inherit; color: inherit; }
 .foot-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
 .foot-link.push { margin-left: auto; }
 .foot-link svg { display: block; }
+.foot-clock { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* 마우스를 올리면 줄 뒤로 옅은 띠가 왼쪽부터 펼쳐지고 글자가 조금 밝아진다. */
 .ranks li, .foot > * { position: relative; isolation: isolate; transition: color 0.18s ease; }
@@ -552,10 +553,9 @@ button, input { font: inherit; color: inherit; }
 
 .strip-tip.on { opacity: 1; }
 
-#scene-inner.narrow .notes, #scene-inner.narrow .telemetry { display: none; }
-#scene-inner.narrow .ranks { left: 372.5px; }
-#scene-inner.small .blueprint .far, #scene-inner.small .owner { display: none; }
-#scene-inner.small .foot { gap: 14px; }
+/* 폭이 좁아도 카드 좌우의 수식과 수치는 그대로 두어 잘린 채로 보인다. 바닥글만 한 줄에 들어가게 줄인다. */
+#scene-inner.small .owner, #scene-inner.small .clock-city { display: none; }
+#scene-inner.small .foot { gap: 10px; }
 
 /* ---------------------------------------------------------------- 왼쪽 사이드바 */
 

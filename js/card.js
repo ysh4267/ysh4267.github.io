@@ -29,6 +29,8 @@ const NARROW_MIN = 540; // 이보다 좁으면 카드와 그 주변만 보여 �
 const SMALL_DESIGN = 300;
 const SIDE_GUTTER = 20;
 const IS_IOS = CSS.supports('-webkit-touch-callout', 'none'); // os.css 의 iOS 경량화와 같은 조건
+const RANKS_LEFT = 464;
+const RANKS_WIDTH = 253;
 const STRIP_CELLS = 61; // 약 두 달
 const STRIP_GAP = 7;
 const STRIP_PITCH = 9 + STRIP_GAP;
@@ -242,20 +244,64 @@ function fitScene() {
   inner.style.setProperty('--fit', scale.toFixed(4));
   const span = Math.min(998, Math.round((width - SIDE_GUTTER * 2) / scale));
   inner.style.setProperty('--span', `${span}px`);
+  // 순위 목록은 장면 중심보다 오른쪽 자리를 지키되, 폭이 좁으면 숫자가 잘리지 않을 만큼만 안으로 들어온다.
+  inner.style.setProperty('--ranks-left', `${Math.min(RANKS_LEFT, 499 + width / scale / 2 - RANKS_WIDTH - 8)}px`);
   fitStrip(span);
 }
 
-/** GitHub 버튼의 아이콘. 왼쪽 막대의 아이콘처럼 포인터를 올리면 선이 다시 그려진다. */
+/** GitHub 버튼의 아이콘. 평소에는 화살표이고 포인터를 올리면 GitHub 아이콘으로 바뀐다. 나타날 때마다 선이 그려진다. */
 function initClaim() {
   const claim = document.querySelector('.claim');
-  const glyph = namedIcon('github', 17);
-  claim.querySelector('.spec').before(glyph);
-  claim.addEventListener('pointerenter', () => drawIcon(glyph, { duration: 480 }));
+  const arrow = namedIcon('arrow-up-right', 17);
+  const github = namedIcon('github', 17);
+  let current = arrow;
+  claim.querySelector('.spec').before(arrow);
+  drawIcon(arrow, { delay: 400, duration: 620 });
+
+  const swapTo = (next) => {
+    if (current === next) return;
+    current.replaceWith(next);
+    current = next;
+    drawIcon(next, { duration: 480 });
+  };
+  claim.addEventListener('pointerenter', () => swapTo(github));
+  claim.addEventListener('pointerleave', () => swapTo(arrow));
+}
+
+/**
+ * 오른쪽 아래의 서울 시각. 보는 사람의 시간대와 상관없이 한국 시간을 0.01초까지 보여 준다.
+ * 한국은 일광 절약 시간이 없어 항상 UTC+9 이다. 탭이 숨겨지면 requestAnimationFrame 과 함께 멈춘다.
+ */
+function initClock() {
+  const clock = document.getElementById('c-clock');
+  const KST = 9 * 60 * 60 * 1000;
+  const write = (length) => {
+    clock.textContent = new Date(Date.now() + KST).toISOString().slice(11, length);
+  };
+  // 움직임을 줄이는 설정에서는 1초 단위로만 바꾼다.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    write(19);
+    setInterval(() => write(19), 1000);
+    return;
+  }
+  // 아이폰과 아이패드에서는 쉬지 않고 다시 그리지 않도록 0.1초마다 바꾼다.
+  const step = IS_IOS ? 100 : 0;
+  let last = 0;
+  const tick = (now) => {
+    if (now - last >= step) {
+      write(22);
+      last = now;
+    }
+    requestAnimationFrame(tick);
+  };
+  write(22);
+  requestAnimationFrame(tick);
 }
 
 export function initCard() {
   fillCard();
   initClaim();
+  initClock();
   initStripTip();
   refreshFromGitHub();
   fitScene();

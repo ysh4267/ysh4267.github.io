@@ -21,6 +21,7 @@ const MOTIONS = {
   question: [{ transform: 'rotate(-8deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(0)' }],
   search: [{ transform: 'translate(-1.5px, -1.5px)' }, { transform: 'translate(0, 0)' }],
   github: [{ transform: 'rotate(-10deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(0)' }],
+  'arrow-up-right': [{ transform: 'translate(-3px, 3px)' }, { transform: 'translate(0, 0)' }],
 };
 
 /** 이름을 기억하는 아이콘. drawIcon 이 도구별 움직임을 찾을 때 쓴다. */
