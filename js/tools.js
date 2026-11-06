@@ -51,4 +51,12 @@ export const WEB_APPS = [
     url: 'https://ysh4267.github.io/box/',
     size: [1006, 782],
   },
+  {
+    id: 'tutorial',
+    name: 'Tutorial',
+    summary: '마우스를 올리면 설명이 뜨고, 설명서를 넘기면 그 부분을 비춰 주는 기계',
+    icon: 'book-open',
+    url: 'tutorial/',
+    size: [1280, 800],
+  },
 ];

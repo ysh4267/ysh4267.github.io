@@ -1,4 +1,4 @@
-import { icon } from './icons.js?v=db0a5dc043';
+import { icon } from './icons.js?v=ce7a06deb1';
 
 const SHAPES = 'path, circle, rect, line, polyline, polygon, ellipse';
 const DRAW_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
@@ -18,6 +18,7 @@ const MOTIONS = {
   dna: [{ transform: 'rotate(-40deg)' }, { transform: 'rotate(0)' }],
   backpack: [{ transform: 'translateY(0)' }, { transform: 'translateY(-3px)' }, { transform: 'translateY(0)' }],
   box: [{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(-3.5px) rotate(4deg)' }, { transform: 'translateY(0) rotate(0)' }],
+  'book-open': [{ transform: 'scaleX(0.82)' }, { transform: 'scaleX(1.05)' }, { transform: 'scaleX(1)' }],
   blocks: [{ transform: 'scale(0.86)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }],
   question: [{ transform: 'rotate(-8deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(0)' }],
   search: [{ transform: 'translate(-1.5px, -1.5px)' }, { transform: 'translate(0, 0)' }],
