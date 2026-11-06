@@ -75,8 +75,8 @@ a { color: inherit; cursor: var(--cur-hand); }
   height: 23px;
   border-radius: 2px 2px 0 0;
   background:
-    repeating-linear-gradient(90deg, rgba(110, 62, 24, 0.07) 0 3px, transparent 3px 37px, rgba(255, 215, 165, 0.06) 37px 39px, transparent 39px 61px),
-    linear-gradient(#c79a69, #c09262 45%, #b3855a);
+    linear-gradient(rgba(255, 226, 186, 0.1), rgba(70, 36, 12, 0.1)),
+    url('props/desk-top.webp') center / 100% 100% no-repeat;
   box-shadow: inset 0 1px 0 rgba(255, 225, 185, 0.22);
 }
 .desk-front {
@@ -86,8 +86,8 @@ a { color: inherit; cursor: var(--cur-hand); }
   width: 1038px;
   height: 22px;
   background:
-    repeating-linear-gradient(90deg, rgba(70, 38, 12, 0.08) 0 2px, transparent 2px 43px),
-    linear-gradient(#b07c47, #94653a);
+    linear-gradient(rgba(46, 22, 6, 0.16), rgba(46, 22, 6, 0.34)),
+    url('props/desk-front.webp') center / 100% 100% no-repeat;
   box-shadow: 0 16px 34px rgba(20, 30, 34, 0.28);
 }
 .leg {
@@ -517,132 +517,100 @@ a { color: inherit; cursor: var(--cur-hand); }
 .health-bar i { flex: 1; border-radius: 1px; background: rgba(60, 120, 60, 0.25); }
 .health-bar i.on { background: linear-gradient(#7fec6a, #34c63e); box-shadow: 0 0 5px rgba(80, 240, 90, 0.65); }
 
-/* 소품: 위치와 크기는 원본 기본 화면에서 잰 값 */
+/* 소품: 사진처럼 만든 이미지(props/)를 붙인다. 위치와 크기는 원본 기본 화면에서 잰 값에 맞췄다.
+   흰색 규칙에 맞춰 이미지의 가장 밝은 부분도 옅은 회색 아래로 눌러 두었다. 그림자는 이미지 모양을 따라 drop-shadow 로 준다. */
 .keyboard {
   position: absolute;
-  left: 412px;
+  left: 373px;
   top: 541px;
-  width: 54px;
+  width: 97px;
   height: 271px;
   display: block;
-  transform: rotate(3deg);
-  transform-origin: 50% 100%;
-  border-radius: 6px 6px 4px 4px;
-  background: linear-gradient(90deg, #958d78, #ada590 28%, #a09883 72%, #857d69);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2), -6px 8px 16px rgba(20, 30, 34, 0.28);
+  background: url('props/keyboard.webp') center / 100% 100% no-repeat;
+  /* 원본처럼 기계 왼쪽에 비스듬히 기대 서 있다. 오른쪽 아래 모서리를 축으로 돌려 왼쪽이 멀어진다. */
+  transform: perspective(1400px) rotateY(-48deg) rotate(3deg);
+  transform-origin: 100% 100%;
+  filter: drop-shadow(-4px 7px 7px rgba(20, 30, 34, 0.3));
 }
-.kb-keys {
-  position: absolute;
-  left: 9px;
-  right: 9px;
-  top: 13px;
-  bottom: 32px;
-  border-radius: 2px;
-  background:
-    repeating-linear-gradient(0deg, rgba(50, 45, 32, 0.45) 0 2px, transparent 2px 13px),
-    repeating-linear-gradient(90deg, rgba(50, 45, 32, 0.45) 0 2px, transparent 2px 10px),
-    linear-gradient(#b6ae98, #a59d88);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
-}
-.kb-wedge { position: absolute; left: 12px; right: 12px; bottom: 9px; height: 14px; border-radius: 3px; background: linear-gradient(#988f78, #807862); }
 
 .mug {
   position: absolute;
-  left: 373px;
-  top: 751px;
-  width: 44px;
-  height: 61px;
-  display: grid;
-  place-items: center;
-  border-radius: 4px 4px 9px 9px;
-  background: linear-gradient(90deg, #5e6d7a, #7d8c99 34%, #6f7e8b 66%, #52616d);
-  box-shadow: 5px 7px 12px rgba(20, 30, 34, 0.25);
+  left: 356px;
+  top: 756px;
+  width: 63px;
+  height: 56px;
+  background: url('props/mug.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(4px 6px 6px rgba(20, 30, 34, 0.28));
 }
-.mug::before { content: ''; position: absolute; left: 3px; right: 3px; top: 2px; height: 5px; border-radius: 50%; background: #2a1d14; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6); }
-/* 원본 머그의 줄무늬 로고처럼 글자에 가로줄을 넣는다. */
-.mug b {
-  margin-top: 6px;
-  background: repeating-linear-gradient(180deg, #17263d 0 1.6px, transparent 1.6px 2.6px);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font: 900 12px/1 var(--cond);
-  font-stretch: 75%;
-  letter-spacing: 0.06em;
-}
-.mug-handle { position: absolute; left: -14px; top: 13px; width: 17px; height: 28px; border: 5px solid #6a7986; border-right: 0; border-radius: 13px 0 0 13px; }
 
 /* 책상 위의 파란 라마. 원본처럼 왼쪽을 본다. */
 .llama {
   position: absolute;
-  left: 320px;
-  top: 760px;
-  width: 27px;
-  height: 54px;
-  transform: scaleX(-1);
-  background: linear-gradient(90deg, #2a54ad, #3d70d2 45%, #2950a3);
-  clip-path: polygon(60% 2.5%, 65% 0%, 66.7% 7.5%, 73.3% 6.3%, 76.7% 0%, 80% 7.5%, 86.7% 10%, 98.3% 15%, 98.3% 21.3%, 83.3% 23.8%, 78.3% 25%, 78.3% 52.5%, 81.7% 57.5%, 81.7% 75%, 80% 100%, 75% 100%, 73.3% 77.5%, 66.7% 77.5%, 65% 100%, 60% 100%, 58.3% 77.5%, 36.7% 77.5%, 35% 100%, 30% 100%, 28.3% 77.5%, 23.3% 77.5%, 21.7% 100%, 16.7% 100%, 15% 75%, 11.7% 60%, 6.7% 55%, 10% 50%, 16.7% 51.3%, 60% 50%, 60% 22.5%, 56.7% 12.5%);
+  left: 310px;
+  top: 762px;
+  width: 41px;
+  height: 50px;
+  background: url('props/llama.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(3px 4px 4px rgba(20, 30, 34, 0.26));
 }
-.llama::after { content: ''; position: absolute; left: 81%; top: 11%; width: 2px; height: 2px; border-radius: 50%; background: #0f1f45; }
 
-/* 탁상시계: 투명한 받침에 끼워져 있다. */
-.clock-prop { position: absolute; left: 537px; top: 181px; width: 54px; height: 53px; }
-.clock-stand { position: absolute; left: 1px; top: 20px; width: 52px; height: 33px; border: 1.5px solid rgba(150, 172, 182, 0.55); border-top-color: transparent; border-radius: 0 0 3px 3px; background: linear-gradient(rgba(160, 182, 192, 0.06), rgba(160, 182, 192, 0.2)); }
-.clock-prop svg { position: absolute; left: 3px; top: 0; display: block; width: 48px; height: 48px; filter: drop-shadow(2px 3px 3px rgba(20, 30, 34, 0.25)); }
-.clock-rim { fill: #9ea3a2; stroke: #646968; stroke-width: 1; }
-.clock-face { fill: #b6b2a4; }
-.clock-ticks line { stroke: #262626; stroke-width: 1.4; }
+/* 탁상시계: 사진에는 바늘이 없고, 바늘만 SVG 로 그려 지금 시각을 가리킨다. 바늘 SVG 의 중심과 크기는 사진의 문자판에 맞춘 값이다. */
+.clock-prop {
+  position: absolute;
+  left: 540px;
+  top: 181px;
+  width: 48px;
+  height: 53.8px;
+  background: url('props/clock.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(2px 3px 3px rgba(20, 30, 34, 0.25));
+}
+.clock-prop svg { position: absolute; left: -1.7px; top: -2px; display: block; width: 51.7px; height: 51.7px; overflow: visible; filter: drop-shadow(0.5px 0.8px 0.5px rgba(0, 0, 0, 0.35)); }
 .clock-h { stroke: #1a1a1a; stroke-width: 3.2; stroke-linecap: round; }
 .clock-m { stroke: #1a1a1a; stroke-width: 2.1; stroke-linecap: round; }
 .clock-s { stroke: #c9301f; stroke-width: 1; }
 .clock-pin { fill: #1a1a1a; }
 
-/* 원본의 검은 모자. 정면의 로고만 주황색이고 챙은 오른쪽 앞으로 나와 있다. */
-.cap { position: absolute; left: 639px; top: 169px; width: 112px; height: 66px; }
-.cap i, .cap b { position: absolute; display: block; }
-.cap-crown {
-  left: 4px;
-  bottom: 5px;
-  width: 86px;
-  height: 58px;
-  border-radius: 50% 50% 14% 18% / 96% 96% 16% 18%;
-  background: radial-gradient(110% 95% at 40% 25%, #4a4a47, #262624 55%, #131312);
-  box-shadow: inset -8px -5px 12px rgba(0, 0, 0, 0.5), inset 3px 2px 6px rgba(255, 255, 255, 0.05);
+/* 원본의 검은 모자. 정면의 로고만 주황색이다. */
+.cap {
+  position: absolute;
+  left: 636px;
+  top: 156px;
+  width: 109px;
+  height: 80px;
+  background: url('props/cap.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(3px 4px 5px rgba(20, 30, 34, 0.3));
 }
-.cap-crown::before { content: ''; position: absolute; left: 52%; top: 5px; bottom: 8px; width: 1px; background: rgba(0, 0, 0, 0.4); transform: rotate(5deg); }
-.cap-bill { right: 0; bottom: 0; width: 74px; height: 19px; border-radius: 50%; background: linear-gradient(#2d2d2b, #0f0f0e); transform: rotate(9deg); box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35); }
-.cap-button { left: 42px; top: 4px; width: 9px; height: 5px; border-radius: 50%; background: #2a2a28; }
-.cap-logo { left: 20px; top: 24px; color: #cf5530; font: 900 19px/1 var(--cond); font-stretch: 64%; letter-spacing: 0.02em; transform: rotate(-6deg); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
 
-/* 위에 쌓인 책 세 권 (맨 아래 흰 책은 바랜 회색) */
-.books-top { position: absolute; left: 853px; top: 176px; width: 150px; height: 58px; display: flex; flex-direction: column; justify-content: flex-end; }
-.books-top i { display: block; border-radius: 2px; box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
-.books-top i:nth-child(1) { width: 138px; height: 17px; margin-left: 3px; background: linear-gradient(#5b2826, #3d1a18); }
-.books-top i:nth-child(2) { width: 141px; height: 17px; margin-left: 5px; background: linear-gradient(#302c2a, #1c1a19); }
-.books-top i:nth-child(3) { width: 150px; height: 22px; background: linear-gradient(#a2a49f, #8b8d88); }
+/* 위에 쌓인 책 세 권 (맨 아래 책은 바랜 회색) */
+.books-top {
+  position: absolute;
+  left: 853px;
+  top: 166px;
+  width: 151px;
+  height: 69px;
+  background: url('props/books-top.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(3px 4px 5px rgba(20, 30, 34, 0.28));
+}
 
 .manual-book {
   position: absolute;
-  left: 1126px;
+  left: 1118px;
   top: 648px;
-  width: 44px;
+  width: 58px;
   height: 168px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0 11px;
-  border-radius: 3px 3px 2px 2px;
-  background: linear-gradient(90deg, #bb3e1d, #e2572a 30%, #cd4b24 70%, #a23619);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25), 5px 5px 12px rgba(20, 30, 34, 0.28);
-  color: #2a130a;
+  display: block;
+  background: url('props/manual-book.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(5px 5px 8px rgba(20, 30, 34, 0.28));
 }
-.manual-book span { writing-mode: vertical-rl; font: 900 19px/1 var(--cond); font-stretch: 68%; letter-spacing: 0.05em; }
-.manual-book small { writing-mode: vertical-rl; padding: 4px 2px; border-radius: 2px; background: #2a130a; color: #e9612c; font: 700 6px/1 var(--mono); }
-.side-books { position: absolute; left: 1170px; top: 682px; height: 134px; display: flex; align-items: flex-end; }
-.side-books i { display: block; height: 134px; border-radius: 2px; }
-.side-books i:nth-child(1) { width: 20px; background: linear-gradient(90deg, #2a2d31, #42464b, #282b2f); }
-.side-books i:nth-child(2) { width: 18px; background: linear-gradient(90deg, #988f78, #ada590, #8e866f); }
+.side-books {
+  position: absolute;
+  left: 1176px;
+  top: 682px;
+  width: 46px;
+  height: 134px;
+  background: url('props/side-books.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(4px 5px 7px rgba(20, 30, 34, 0.25));
+}
 
 /* 영수증 종이: 흰 종이 대신 바랜 감열지 색. 원본처럼 작은 설명 줄과 큰 값 줄이 번갈아 찍힌다. */
 .roll { position: absolute; left: 597px; top: 756px; width: 128px; height: 460px; }
@@ -756,11 +724,14 @@ body.page-drag, body.page-drag * { cursor: var(--cur-grabbing) !important; }
   filter: blur(22px);
 }
 .book-3d { position: absolute; inset: 0; transform-style: preserve-3d; }
-/* 넘어가는 페이지: 같은 페이지를 세로 띠로 잘라 띠마다 각도를 달리 줘서 휘게 한다. */
+/* 넘어가는 페이지: 같은 페이지를 접히는 선과 나란한 띠로 잘라 띠마다 각도를 달리 줘서 휘게 한다.
+   .hinge 는 스프링을 축으로 돌고, 접히는 선이 기울면 그 안의 .tilt 를 돌린다. 띠 안의 페이지는 반대로 돌려 제자리에 보이게 한다. */
 .flipper { position: absolute; inset: 0; transform: translateZ(1px); transform-style: preserve-3d; pointer-events: none; }
+.hinge, .tilt { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; }
 .strip { position: absolute; left: 0; top: 0; height: 940px; overflow: hidden; transform-origin: 0 50%; backface-visibility: visible; }
 .strip > .page { inset: auto; left: 0; top: 0; width: 560px; height: 940px; transform-origin: 0 0; }
-.strip-shade { position: absolute; inset: 0; background: #0b0c0c; opacity: 0; pointer-events: none; }
+/* 띠 양 끝의 그늘은 이웃한 띠와 같은 값으로 맞춘 그라디언트라 띠 경계가 보이지 않는다. */
+.strip-shade { position: absolute; inset: 0; pointer-events: none; }
 
 .stack { position: absolute; inset: 0; transform: translateZ(-6px); }
 .stack::before, .stack::after { content: ''; position: absolute; inset: 0; border-radius: 2px 6px 6px 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.16); }
@@ -784,8 +755,8 @@ body.page-drag, body.page-drag * { cursor: var(--cur-grabbing) !important; }
   text-transform: uppercase;
 }
 .page.under { transform: translateZ(-1px); }
-/* 들린 페이지 그림자: 들린 부분 아래(--sx 까지)가 가장 어둡고 오른쪽으로 --sw 만큼 옅어진다. */
-.page.under > .shade { background: linear-gradient(90deg, rgba(11, 12, 12, 0.5) var(--sx, 0px), rgba(11, 12, 12, 0) calc(var(--sx, 0px) + var(--sw, 120px))); }
+/* 들린 페이지 그림자: 들린 부분 아래(--sx 까지)가 가장 어둡고 바깥으로 --sw 만큼 옅어진다. 접히는 선이 기울면 --sa 만큼 같이 기운다. */
+.page.under > .shade { background: linear-gradient(calc(90deg + var(--sa, 0deg)), rgba(11, 12, 12, 0.5) var(--sx, 0px), rgba(11, 12, 12, 0) calc(var(--sx, 0px) + var(--sw, 120px))); }
 .shade {
   position: absolute;
   inset: 0;
@@ -843,19 +814,8 @@ body.page-drag, body.page-drag * { cursor: var(--cur-grabbing) !important; }
 .fig-tag { display: flex; justify-content: space-between; margin-bottom: 6px; font: 400 11px/1.2 var(--type); }
 .fig-tag b { padding: 0 6px; border: 1.4px solid var(--ink); border-radius: 99px; font-weight: 700; }
 .fig-cap { margin-top: 8px; padding-top: 6px; border-top: 1px dotted rgba(0, 0, 0, 0.55); font-size: 10px; }
-.fig-svg { display: block; width: 100%; height: auto; overflow: visible; }
-.fig-svg .ln { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.fig-svg .thin { stroke-width: 0.9; }
-.fig-svg .dash { stroke-dasharray: 5 3.5; }
-.fig-svg .dot { stroke-dasharray: 1 3; }
-.fig-svg .fill { fill: var(--ink); stroke: none; }
-.fig-svg .ln.fill { fill: var(--ink); }
-.fig-svg .paper { fill: #eef0ec; }
-.fig-svg .lbl { fill: var(--ink); font: 400 10px/1 var(--type); }
-.fig-svg .lbl.b { font-weight: 700; }
-.fig-svg .lbl.mid { text-anchor: middle; }
-.fig-svg .lbl.end { text-anchor: end; }
-.fig-svg .lbl.big { font-size: 13px; }
+/* 설명서 그림: 잉크만 있는 선 그림 이미지라 종이 색이 그대로 비친다. */
+.fig-img { display: block; width: 100%; height: auto; -webkit-user-drag: none; }
 .specs { display: grid; grid-template-columns: auto 1fr; gap: 5px 16px; margin: 0 0 15px; font-size: 13px; }
 .specs dt { font-weight: 700; }
 .specs dd { margin: 0; border-bottom: 1px dotted rgba(0, 0, 0, 0.5); text-align: right; }
@@ -890,9 +850,6 @@ body.page-drag, body.page-drag * { cursor: var(--cur-grabbing) !important; }
 .cover-sub { margin: 9px 0 14px; text-align: center; font: 800 15.5px/1.1 var(--cond); font-stretch: 75%; letter-spacing: 0.03em; }
 .cover-sub em { font-weight: 600; }
 .cover-fig { padding: 9px 10px 8px; }
-.parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px 10px; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px dotted rgba(0, 0, 0, 0.55); list-style: none; counter-reset: part; font-size: 10.5px; }
-.parts li { counter-increment: part; white-space: nowrap; }
-.parts li::before { content: counter(part); display: inline-block; width: 15px; height: 15px; margin-right: 6px; border: 1.2px solid var(--ink); border-radius: 50%; font-size: 9px; font-weight: 700; line-height: 13px; text-align: center; }
 .cover-warn { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: auto; }
 .cover-warn span { padding: 2px 16px; border: 1.6px solid var(--ink); border-radius: 99px; font: 400 22px/1.15 var(--type); }
 .cover-fine { margin: 16px 0 0; text-align: center; font-size: 8.5px; letter-spacing: 0.04em; }

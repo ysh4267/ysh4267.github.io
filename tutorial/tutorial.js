@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=f312f17e46';
-import { figure, segmentPoints } from './figures.js?v=f312f17e46';
+import { PAGES, SECTIONS, TOC } from './content.js?v=167df14cfd';
+import { figure, segmentPoints } from './figures.js?v=167df14cfd';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -109,8 +109,8 @@ const sound = (() => {
       if (value) ready();
     },
     wake: ready,
-    tick: () => beep(2400, 0.035, 0.018),
-    click: () => hiss({ length: 0.045, peak: 0.09, type: 'highpass', from: 2600, to: 1800 }),
+    // 누를 때 나는 짧고 높은 삑 소리. 마우스를 올릴 때는 소리를 내지 않는다.
+    click: () => beep(2400, 0.035, 0.018),
     flip: () => hiss({ length: 0.36, peak: 0.13, from: 700, to: 2600, q: 0.7 }),
     whoosh: () => hiss({ length: 0.42, peak: 0.09, type: 'lowpass', from: 380, to: 2200 }),
   };
@@ -212,12 +212,6 @@ for (let i = 0; i <= 10; i += 1) {
   const major = i % 5 === 0;
   const inner = major ? 37 : 42;
   svgLine($('#gauge-ticks'), `g-tick${major ? ' major' : ''}`, Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * 49, Math.sin(angle) * 49);
-}
-// 탁상시계 눈금
-for (let i = 0; i < 12; i += 1) {
-  const a = (i / 12) * Math.PI * 2;
-  const inner = i % 3 === 0 ? 23 : 27;
-  svgLine($('#clock-ticks'), '', Math.sin(a) * inner, -Math.cos(a) * inner, Math.sin(a) * 30, -Math.cos(a) * 30);
 }
 
 /* ---------- 커서 스코프 ---------- */
@@ -755,7 +749,6 @@ function setHover(el) {
   showPop(mainPop, el, sectionInfo(id));
   live.hovers[id] = (live.hovers[id] ?? 0) + 1;
   log('HOVER', SECTIONS[id].name);
-  sound.tick();
 }
 
 function sectionAt(x, y) {
@@ -825,8 +818,7 @@ const TEMPLATES = {
   cover: () => '<p class="cover-banner">CONGRATULATIONS ON YOUR PURCHASE</p>'
     + '<div class="cover-brand"><h1>HOON</h1><span>MK I</span></div>'
     + '<p class="cover-sub">HUMAN-OPERATED OBSERVATION NODE <em>MARK ONE</em></p>'
-    + `<figure class="fig cover-fig"><div class="fig-tag"><span>FIG. <b>00</b></span><span>GENERAL ARRANGEMENT</span></div>${figure('iso')}`
-    + '<ol class="parts"><li>TOP DISPLAY</li><li>LEFT BAY</li><li>SCOPE</li><li>SIDE VENTS</li><li>WALL CLOCK</li><li>BOOK STACK</li></ol></figure>'
+    + `<figure class="fig cover-fig"><div class="fig-tag"><span>FIG. <b>00</b></span><span>GENERAL ARRANGEMENT</span></div>${figure('iso')}</figure>`
     + '<div class="cover-warn"><span>PLEASE BE AWARE THAT ALL</span><span>DATA DISPLAYED ARE THE</span><span>NEAREST APPROXIMATIONS</span></div>'
     + '<p class="cover-fine">REFER BACK TO YOUR MACHINE OFTEN. IT IS WATCHING YOU, POLITELY.</p>'
     + `<footer class="pg-foot center">${LOGO}</footer>`,
@@ -909,7 +901,8 @@ function showOnly(index) {
   });
 }
 
-/* ---------- 페이지 넘김: 세로 띠로 잘라 휘게 한다 ----------
+/* ---------- 페이지 넘김: 접히는 선과 나란한 띠로 잘라 휘게 한다 ----------
+   비스듬히 끌면 접히는 선도 기울어 모서리부터 사선으로 말린다. 스프링 쪽이 들리기 전에 기울기는 0 으로 돌아온다.
    레퍼런스 영상(13.3~14.7초)을 따른다. 잡은 쪽 끝이 먼저 말려 올라가 안쪽으로 접히는 동안 스프링 쪽은 누워 있고,
    접힌 자리가 스프링 쪽에 다가오면 스프링 쪽이 들리며 페이지가 크게 휜 채 왼쪽으로 넘어간다.
    왼쪽에 잠깐 머물렀다가 책 뒤로 감긴다. 되돌릴 때는 같은 모양을 거꾸로 밟으며 오른쪽에 펼쳐진다.
@@ -917,7 +910,9 @@ function showOnly(index) {
    자세는 네 값이다. hinge: 스프링 쪽 각도, roll: 휘기 시작하는 자리, span: 휘는 구간의 길이(둘 다 페이지 폭 비율),
    bend: 휘는 구간에서 더 도는 각도. 각도는 도 단위이고 0 은 오른쪽에 평평, 180 은 왼쪽에 평평이다. */
 const CURL = {
-  strips: 28,
+  arcStrips: 24,
+  seam: 0.6,
+  tiltMax: 34,
   land: 158,
   settle: 170,
   behind: 292,
@@ -953,31 +948,34 @@ function curlPose(p) {
   return { hinge, roll: CURL.fold * (1 - v) ** 1.5, span: lerp(CURL.span, CURL.spanOver, v), bend: far - hinge };
 }
 
-/** 페이지 위 s(0~1) 자리의 [x, z](책 좌표 px). 누운 구간, 원호로 휜 구간, 다시 곧은 구간을 이어 붙인다. */
-function pagePoint(pose, s) {
+/** 기울어진 축(px)을 따라 u 자리가 휘어서 가는 곳 [X, Z, 그 자리의 기울기(rad)].
+    누운 구간, 원호로 휜 구간, 다시 곧은 구간을 이어 붙인다. roll, span 도 px 이다. */
+function profile(pose, u, roll, span) {
   const a0 = rad(pose.hinge);
   const k = rad(pose.bend);
-  const span = Math.max(pose.span, 1e-4);
-  const flat = Math.min(s, pose.roll);
-  let x = flat * Math.cos(a0);
-  let z = flat * Math.sin(a0);
-  if (s > pose.roll) {
-    const arc = Math.min(s - pose.roll, span);
-    if (Math.abs(k) < 1e-5) {
-      x += arc * Math.cos(a0);
-      z += arc * Math.sin(a0);
-    } else {
-      const c = k / span;
-      x += (Math.sin(a0 + c * arc) - Math.sin(a0)) / c;
-      z -= (Math.cos(a0 + c * arc) - Math.cos(a0)) / c;
-    }
-    const rest = s - pose.roll - span;
-    if (rest > 0) {
-      x += rest * Math.cos(a0 + k);
-      z += rest * Math.sin(a0 + k);
-    }
+  if (u <= roll) return [u * Math.cos(a0), u * Math.sin(a0), a0];
+  let x = roll * Math.cos(a0);
+  let z = roll * Math.sin(a0);
+  const arc = Math.min(u - roll, span);
+  const c = k / Math.max(span, 1e-6);
+  const a1 = a0 + c * arc;
+  if (Math.abs(k) < 1e-6) {
+    x += arc * Math.cos(a0);
+    z += arc * Math.sin(a0);
+  } else {
+    x += (Math.sin(a1) - Math.sin(a0)) / c;
+    z -= (Math.cos(a1) - Math.cos(a0)) / c;
   }
-  return [x * BOOK.w, z * BOOK.w];
+  const rest = u - roll - span;
+  if (rest <= 0) return [x, z, a1];
+  const a2 = a0 + k;
+  return [x + rest * Math.cos(a2), z + rest * Math.sin(a2), a2];
+}
+
+/** 페이지 위 s(0~1) 자리의 [x, z](책 좌표 px). 기울기 없이 스프링에서 잰다. */
+function pagePoint(pose, s) {
+  const [x, z] = profile(pose, s * BOOK.w, pose.roll * BOOK.w, pose.span * BOOK.w);
+  return [x, z];
 }
 
 // 끌기용 손잡이 위치표. 페이지 끝의 x 와 고르게 줄어드는 직선을 반씩 섞어, 진행도가 늘면 늘 왼쪽으로만 가게 한다.
@@ -1000,25 +998,36 @@ function progressAt(x) {
   return 1;
 }
 
+/** 접히는 선의 기울기(rad). 끈 방향에서 온다.
+    스프링 쪽 평평한 부분이 남아 있는 동안은 기울기를 지키고, 그 부분이 사라지기 전에(접히는 선이 스프링에 닿기 전에) 곧게 선다. */
+function tiltNow(t) {
+  if (!t.tilt) return 0;
+  return t.tilt * smooth(clamp(t.roll / 0.3, 0, 1));
+}
+
 function makeTurn(turningIndex, stayingIndex, forward) {
   const flipper = document.createElement('div');
   flipper.className = 'flipper';
-  const stripW = BOOK.w / CURL.strips;
+  // hinge: 스프링 쪽 평평한 부분이 스프링을 축으로 도는 틀. tilt: 그 평면 안에서 접히는 선의 기울기만큼 도는 틀.
+  // 띠는 tilt 안에서 접히는 선과 나란히 놓여 휜다.
+  const hinge = document.createElement('div');
+  hinge.className = 'hinge';
+  const tilt = document.createElement('div');
+  tilt.className = 'tilt';
+  hinge.append(tilt);
+  flipper.append(hinge);
   const strips = [];
-  for (let i = 0; i < CURL.strips; i += 1) {
+  for (let i = 0; i < CURL.arcStrips + 2; i += 1) {
     const strip = document.createElement('div');
     strip.className = 'strip';
-    // 이웃한 띠와 조금 겹쳐야 휘었을 때 틈이 보이지 않는다.
-    strip.style.width = `${stripW + 0.8}px`;
     const copy = pageEls[turningIndex].cloneNode(true);
     copy.hidden = false;
     copy.classList.remove('under');
-    copy.style.transform = `translateX(${-i * stripW}px)`;
     const shade = document.createElement('i');
     shade.className = 'strip-shade';
     strip.append(copy, shade);
-    flipper.append(strip);
-    strips.push({ el: strip, shade });
+    tilt.append(strip);
+    strips.push({ el: strip, copy, shade, cut: '', look: '', shown: true });
   }
   manual.book3d.insertBefore(flipper, manual.rings);
   pageEls.forEach((el, i) => {
@@ -1026,36 +1035,108 @@ function makeTurn(turningIndex, stayingIndex, forward) {
     el.classList.toggle('under', i === stayingIndex);
   });
   const under = pageEls[stayingIndex];
-  return { el: flipper, strips, forward, under, underShade: $('.shade', under), ...flatPose(0), p: 0, gain: 1, legs: [], leg: null, done: null };
+  return {
+    el: flipper, hingeEl: hinge, hingeKey: '', tiltEl: tilt, tiltKey: '', strips, forward, under, underShade: $('.shade', under),
+    ...flatPose(0), p: 0, tilt: 0, gain: 1, legs: [], leg: null, done: null,
+  };
 }
 
 function poseTurn(t) {
+  const W = BOOK.w;
+  const H = BOOK.h;
+  const phi = tiltNow(t);
+  const cos = Math.cos(phi);
+  const sin = Math.sin(phi);
+  // 기울어진 축으로 잰 페이지의 범위. s 는 접히는 선에 수직, 띠의 길이 방향이 t 다.
+  const sMin = Math.min(0, H * sin);
+  const sMax = W * cos + Math.max(0, H * sin);
+  const tMin = Math.min(0, -W * sin);
+  const tMax = H * cos + Math.max(0, -W * sin);
+  const a0 = rad(t.hinge);
+  const hingeKey = a0.toFixed(5);
+  if (hingeKey !== t.hingeKey) {
+    t.hingeKey = hingeKey;
+    t.hingeEl.style.transform = a0 ? `rotateY(${(-a0).toFixed(5)}rad)` : '';
+  }
+  const tiltKey = phi.toFixed(4);
+  if (tiltKey !== t.tiltKey) {
+    t.tiltKey = tiltKey;
+    t.tiltEl.style.transform = phi ? `rotate(${tiltKey}rad)` : '';
+  }
+  // 휘는 구간만 가는 띠로 촘촘히 나누고, 앞뒤의 곧은 구간은 띠 하나씩으로 덮는다. 모양은 스프링 쪽 평면 안에서 잡는다.
+  const shape = { hinge: 0, bend: t.bend };
+  const roll = sMax - (1 - t.roll) * W;
+  const span = t.span * W;
+  const arcStart = clamp(roll, sMin, sMax);
+  const arcEnd = clamp(roll + span, arcStart, sMax);
   const n = t.strips.length;
-  const pts = [];
-  let maxX = 0;
+  const edges = [sMin, arcStart];
+  for (let i = 1; i <= n - 2; i += 1) edges.push(arcStart + ((arcEnd - arcStart) * i) / (n - 2));
+  edges.push(sMax);
+  // 띠 가장자리의 그늘. 띠의 법선을 실제 공간으로 돌려 빛과 견준다. 빛을 정면으로 받을수록 밝고, 뒷면이 보이면 조금 더 어둡다.
+  // 이웃한 띠가 맞닿는 자리에서 같은 값을 쓰므로 띠 사이에 밝기 경계가 생기지 않는다.
+  const ca = Math.cos(a0);
+  const sa = Math.sin(a0);
+  const shadeAt = (theta) => {
+    const nx = -Math.sin(theta) * cos;
+    const nz = Math.cos(theta);
+    const wx = nx * ca - nz * sa;
+    const wz = nx * sa + nz * ca;
+    const lit = Math.abs(wx * LIGHT.x + wz * LIGHT.z);
+    const back = 0.05 * smooth(clamp(-wz / 0.3, 0, 1));
+    return clamp((0.96 - lit) * 0.72 + back, 0, 0.62);
+  };
+  // 그림자용: 띠 가운데 줄의 점을 실제 공간으로 옮겨, 접히는 선에 수직으로 가장 바깥인 곳과 가장 높은 곳을 찾는다.
+  const tMid = (tMin + tMax) / 2;
+  let maxS = sMin;
   let maxZ = 0;
-  for (let i = 0; i <= n; i += 1) {
-    const pt = pagePoint(t, i / n);
-    pts.push(pt);
-    maxX = Math.max(maxX, pt[0]);
-    maxZ = Math.max(maxZ, pt[1]);
+  const reach = ([X, Z]) => {
+    const px = X * cos - tMid * sin;
+    const py = X * sin + tMid * cos;
+    const wx = px * ca - Z * sa;
+    maxS = Math.max(maxS, wx * cos + py * sin);
+    maxZ = Math.max(maxZ, px * sa + Z * ca);
+  };
+  let prev = profile(shape, edges[0], roll, span);
+  reach(prev);
+  for (let j = 0; j < n; j += 1) {
+    const s0 = edges[j];
+    const next = profile(shape, edges[j + 1], roll, span);
+    const strip = t.strips[j];
+    const w = edges[j + 1] - s0;
+    const show = w > 0.05;
+    if (show !== strip.shown) {
+      strip.shown = show;
+      strip.el.style.visibility = show ? '' : 'hidden';
+    }
+    if (show) {
+      const cut = `${s0.toFixed(2)} ${w.toFixed(2)} ${tiltKey}`;
+      if (cut !== strip.cut) {
+        strip.cut = cut;
+        // 이웃한 띠와 조금 겹쳐야 휘었을 때 틈이 보이지 않는다.
+        strip.el.style.width = `${(w + CURL.seam).toFixed(2)}px`;
+        strip.el.style.height = `${(tMax - tMin).toFixed(2)}px`;
+        strip.copy.style.transform = `translate(${(-s0).toFixed(2)}px, ${(-tMin).toFixed(2)}px)${phi ? ` rotate(${(-phi).toFixed(4)}rad)` : ''}`;
+      }
+      const a = Math.atan2(next[1] - prev[1], next[0] - prev[0]);
+      strip.el.style.transform = `translate3d(${prev[0].toFixed(2)}px, ${tMin.toFixed(2)}px, ${prev[1].toFixed(2)}px) rotateY(${(-a).toFixed(4)}rad)`;
+      const look = `linear-gradient(90deg, rgba(11, 12, 12, ${shadeAt(prev[2]).toFixed(3)}), rgba(11, 12, 12, ${shadeAt(next[2]).toFixed(3)}))`;
+      if (look !== strip.look) {
+        strip.look = look;
+        strip.shade.style.background = look;
+      }
+      reach(next);
+    }
+    prev = next;
   }
-  for (let i = 0; i < n; i += 1) {
-    const [x, z] = pts[i];
-    const a = Math.atan2(pts[i + 1][1] - z, pts[i + 1][0] - x);
-    const strip = t.strips[i];
-    strip.el.style.transform = `translate3d(${x.toFixed(2)}px, 0, ${z.toFixed(2)}px) rotateY(${((-a * 180) / Math.PI).toFixed(2)}deg)`;
-    // 앞뒤 면 모두 빛을 정면으로 받을수록 밝다. 뒷면이 보이면 조금 더 어둡다.
-    const lit = Math.abs(-Math.sin(a) * LIGHT.x + Math.cos(a) * LIGHT.z);
-    const back = Math.cos(a) < 0 ? 0.05 : 0;
-    strip.shade.style.opacity = clamp((0.96 - lit) * 0.72 + back, 0, 0.62).toFixed(3);
-  }
-  // 들린 페이지가 아래 페이지에 드리우는 그림자. 들린 부분 아래가 가장 어둡고 오른쪽으로 옅어진다.
-  const lift = clamp(maxZ / (BOOK.w * 0.3), 0, 1);
+  // 들린 페이지가 아래 페이지에 드리우는 그림자. 접히는 선과 같은 기울기로, 들린 부분 아래가 가장 어둡고 바깥으로 옅어진다.
+  const lift = clamp(maxZ / (W * 0.3), 0, 1);
   const cover = clamp((176 - t.hinge) / 40, 0, 1);
-  t.underShade.style.setProperty('--sx', `${Math.min(maxX, BOOK.w).toFixed(1)}px`);
-  t.underShade.style.setProperty('--sw', `${(50 + 0.5 * maxZ).toFixed(1)}px`);
-  t.underShade.style.opacity = (0.55 * lift * cover).toFixed(3);
+  const under = t.underShade.style;
+  under.setProperty('--sa', `${((phi * 180) / Math.PI).toFixed(2)}deg`);
+  under.setProperty('--sx', `${(clamp(maxS, sMin, sMax) - sMin).toFixed(1)}px`);
+  under.setProperty('--sw', `${(50 + 0.5 * maxZ).toFixed(1)}px`);
+  under.opacity = (0.55 * lift * cover).toFixed(3);
 }
 
 /** 자세 변화를 차례로 이어 붙인다. 각 다리는 (eased u) => 자세 함수를 가진다. */
@@ -1098,6 +1179,7 @@ function endTurn() {
   turn = null;
   t.el.remove();
   t.underShade.style.opacity = '';
+  t.underShade.style.removeProperty('--sa');
   t.underShade.style.removeProperty('--sx');
   t.underShade.style.removeProperty('--sw');
   showOnly(manual.index);
@@ -1199,19 +1281,27 @@ function beginDrag(forward) {
       legWrap(CURL.behind, CURL.settle, CURL.trail, 0, CURL.timeC, easeOutCubic),
       legSettle(CURL.settle, CURL.land, 120, easeOutCubic),
     ], () => {
-      if (drag.lastDx !== undefined) followDrag(drag.lastDx);
+      if (drag.lastDx !== undefined) followDrag(drag.lastDx, drag.lastDy ?? 0);
     });
   }
   return true;
 }
 
-/** 끈 거리(책 좌표, 왼쪽이 음수)만큼 손잡이를 옮기고 그 진행도의 자세를 잡는다. */
-function followDrag(dx) {
+/** 끈 거리(책 좌표)만큼 손잡이를 옮기고 그 진행도의 자세를 잡는다. 비스듬히 끌면 접히는 선도 그 방향으로 기운다. */
+function followDrag(dx, dy = 0) {
   drag.lastDx = dx;
+  drag.lastDy = dy;
   const t = turn;
   if (!t || t.leg) return;
+  // along: 넘기는 쪽으로 간 거리, across: 위아래로 비킨 거리. 막 끌기 시작했을 때는 방향이 흔들리므로 기울기를 조금씩 들인다.
+  const along = t.forward ? -dx : dx;
+  const across = t.forward ? -dy : dy;
+  const limit = rad(CURL.tiltMax);
+  const want = clamp(Math.atan2(across, Math.max(along, 1)), -limit, limit) * clamp((Math.hypot(dx, dy) - 8) / 60, 0, 1);
+  t.tilt += (want - t.tilt) * 0.45;
+  const dist = along * Math.cos(t.tilt) + across * Math.sin(t.tilt);
   const start = t.forward ? HANDLE[0] : HANDLE[HANDLE.length - 1];
-  const p = progressAt(start + dx * t.gain);
+  const p = progressAt(start + (t.forward ? -dist : dist) * t.gain);
   Object.assign(t, curlPose(p), { p });
   poseTurn(t);
 }
@@ -1493,13 +1583,16 @@ manual.book.addEventListener('pointerdown', (event) => {
   drag.pending = { x: event.clientX, y: event.clientY, id: event.pointerId, grab };
   drag.samples = [];
   drag.lastDx = undefined;
+  drag.lastDy = undefined;
 });
 window.addEventListener('pointermove', (event) => {
   const pending = drag.pending;
   if (!pending || event.pointerId !== pending.id) return;
   const dx = event.clientX - pending.x;
+  const dy = event.clientY - pending.y;
   if (!drag.active) {
-    if (Math.abs(dx) < 7 || Math.abs(dx) < Math.abs(event.clientY - pending.y)) return;
+    // 옆으로든 비스듬히든 끌면 넘기기 시작한다. 세로에 가깝게 끌 때만 넘기지 않는다.
+    if (Math.abs(dx) < 7 || Math.abs(dx) < Math.abs(dy) * 0.6) return;
     if (!beginDrag(dx < 0)) {
       drag.pending = null;
       return;
@@ -1512,10 +1605,11 @@ window.addEventListener('pointermove', (event) => {
       // 포인터를 붙잡지 못해도 창 전체에서 움직임을 받는다.
     }
   }
-  const dxBook = dx / (manual.box?.scale ?? 1);
+  const scale = manual.box?.scale ?? 1;
+  const dxBook = dx / scale;
   drag.samples.push({ t: performance.now(), x: dxBook });
   if (drag.samples.length > 12) drag.samples.shift();
-  followDrag(dxBook);
+  followDrag(dxBook, dy / scale);
 }, { passive: true });
 // 끌기를 놓은 바로 뒤에 따라오는 클릭만 막는다. 클릭이 오지 않아도 잠시 뒤에는 저절로 풀린다.
 const CLICK_AFTER_DRAG_MS = 400;
