@@ -1,7 +1,7 @@
-import { h } from './dom.js?v=ce7a06deb1';
-import { drawIcon, namedIcon } from './motion.js?v=ce7a06deb1';
-import { WEB_APPS } from './tools.js?v=ce7a06deb1';
-import { closeOtherWindows, isOpen, openWindow, toggleWindow } from './wm.js?v=ce7a06deb1';
+import { h } from './dom.js?v=bc99778ac9';
+import { drawIcon, namedIcon } from './motion.js?v=bc99778ac9';
+import { WEB_APPS } from './tools.js?v=bc99778ac9';
+import { closeOtherWindows, isOpen, openWindow, toggleWindow } from './wm.js?v=bc99778ac9';
 
 const IFRAME_ALLOW = 'clipboard-read; clipboard-write; fullscreen; gamepad; autoplay';
 

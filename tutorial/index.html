@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Geist+Mono:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="tutorial.css?v=ce7a06deb1">
-  <script type="module" src="tutorial.js?v=ce7a06deb1"></script>
+  <link rel="stylesheet" href="tutorial.css?v=bc99778ac9">
+  <script type="module" src="tutorial.js?v=bc99778ac9"></script>
 </head>
 <body class="booting">
   <!-- 장면: 카메라가 이 안의 #world 를 옮기고 키운다. 좌표는 1600 x 1000 기준. -->
@@ -22,11 +22,14 @@
       <div class="desk" aria-hidden="true">
         <div class="desk-top"></div>
         <div class="desk-front"></div>
+        <div class="leg leg-lb"></div>
+        <div class="leg leg-rb"></div>
         <div class="leg leg-l"></div>
         <div class="leg leg-r"></div>
       </div>
 
       <div class="clock-prop" aria-hidden="true">
+        <i class="clock-stand"></i>
         <svg viewBox="-40 -40 80 80">
           <circle class="clock-rim" r="37"/>
           <circle class="clock-face" r="32"/>
@@ -36,31 +39,31 @@
           <line class="clock-s" id="clock-s" y1="6" y2="-27"/>
           <circle class="clock-pin" r="2.2"/>
         </svg>
-        <i class="clock-stand"></i>
       </div>
       <div class="cap" aria-hidden="true"><i class="cap-crown"></i><i class="cap-bill"></i><i class="cap-button"></i><b class="cap-logo">HOON</b></div>
       <div class="books-top" aria-hidden="true"><i></i><i></i><i></i></div>
 
+      <!-- 원본처럼 위에 긴 표시 장치가 있고, 그 아래 랙 두 개가 나란히 선다. -->
       <div class="machine">
-        <div class="cab">
-          <section class="mod top" data-sec="travel" tabindex="0" role="button" aria-label="Cursor travel">
-            <div class="top-label" aria-hidden="true"><b>CURSOR</b><b>TRAVEL</b></div>
-            <div class="glass big"><div class="seg vfd" data-seg="travel" data-pattern="888 888 888 888"></div></div>
-            <span class="unit" aria-hidden="true">PX</span>
-            <div class="logo-plate" aria-hidden="true"><b>HOON</b><small>OBSERVATION NODE</small></div>
-          </section>
+        <section class="mod top" data-sec="travel" tabindex="0" role="button" aria-label="Cursor travel">
+          <div class="top-label" aria-hidden="true"><b>CURSOR</b><b>TRAVEL</b></div>
+          <span class="top-unit" aria-hidden="true">PX</span>
+          <div class="glass big"><div class="seg vfd" data-seg="travel" data-pattern="88 88 88 888 888 888" data-dp></div></div>
+          <div class="top-logo" aria-hidden="true"><b>HOON</b><i></i><small>OBSERVATION NODE</small></div>
+        </section>
 
+        <div class="rack rack-l">
           <div class="col">
-            <section class="mod silver" data-sec="session" tabindex="0" role="button" aria-label="Session time">
+            <section class="mod silver handles" data-sec="session" tabindex="0" role="button" aria-label="Session time">
               <span class="lab">SESSION TIME</span>
-              <span class="maker">CHRONO&#8209;7</span>
+              <span class="maker" aria-hidden="true">CHRONO&#8209;7</span>
               <div class="glass lcd"><div class="seg lcdseg" data-seg="session" data-pattern="88:88:88"></div></div>
               <div class="toggles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
               <i class="led-red" aria-hidden="true"></i>
-              <div class="dials" aria-hidden="true"><i></i><i></i><i class="amber"></i></div>
+              <div class="dials" aria-hidden="true"><i></i><i class="amber"></i><i></i></div>
             </section>
 
-            <section class="mod silver" data-sec="cpm" tabindex="0" role="button" aria-label="Clicks per minute">
+            <section class="mod silver handles" data-sec="cpm" tabindex="0" role="button" aria-label="Clicks per minute">
               <span class="lab">CLICKS PER MINUTE</span>
               <div class="glass row1"><div class="seg blue" data-seg="cpm" data-pattern="888 888"></div></div>
               <span class="lab lab2">PEAK CLICKS PER MINUTE</span>
@@ -78,40 +81,44 @@
               </div>
             </section>
 
-            <section class="mod silver printer" data-sec="printer" tabindex="0" role="button" aria-label="Event printer">
+            <section class="mod silver handles printer" data-sec="printer" tabindex="0" role="button" aria-label="Event printer">
               <span class="lab">EVENT PRINTER</span>
               <span class="lab lab-sub">LOG GENERATOR</span>
               <span class="brand" aria-hidden="true">hoon&#8209;e</span>
               <div class="lamps" aria-hidden="true"><i id="lamp-a"></i><i id="lamp-b"></i></div>
               <i class="flip" aria-hidden="true"></i>
+              <div class="bay" aria-hidden="true"></div>
               <div class="slot" aria-hidden="true"></div>
               <div class="grille" aria-hidden="true"></div>
             </section>
           </div>
+          <div class="rack-base" aria-hidden="true"><i></i></div>
+        </div>
 
+        <div class="rack rack-r">
           <div class="col">
             <section class="mod black slim" data-sec="local" tabindex="0" role="button" aria-label="Local time">
-              <span class="lab light">LOCAL TIME</span>
-              <div class="glass slim-glass"><div class="seg blue" data-seg="local" data-pattern="88:88:88"></div></div>
-              <span class="tag light" aria-hidden="true">24H</span>
+              <span class="lab light">LOCAL TIME ON THIS DEVICE</span>
+              <div class="glass strip"><div class="seg blue" data-seg="local" data-pattern="88:88:88"></div></div>
+              <span class="mini-logo" aria-hidden="true">24H</span>
             </section>
 
             <section class="mod silver slim" data-sec="wheel" tabindex="0" role="button" aria-label="Wheel travel">
               <span class="lab">WHEEL TRAVEL</span>
-              <div class="glass slim-glass wide"><div class="seg red" data-seg="wheel" data-pattern="8 888 888 888"></div></div>
+              <span class="prefix" aria-hidden="true">PX</span>
+              <div class="glass strip wide"><div class="seg red" data-seg="wheel" data-pattern="8 888 888 888"></div></div>
             </section>
 
             <section class="mod silver slim" data-sec="fps" tabindex="0" role="button" aria-label="Frame rate">
               <span class="lab">FRAME RATE</span>
-              <div class="glass slim-glass short"><div class="seg blue" data-seg="fps" data-pattern="888"></div></div>
-              <span class="tag fps-tag" aria-hidden="true">FPS</span>
+              <div class="glass strip"><div class="seg blue" data-seg="fps" data-pattern="888 888"></div></div>
               <div class="fps-lamps" aria-hidden="true"><i id="fps-y"></i><i id="fps-g"></i></div>
               <i class="knob-big" aria-hidden="true"></i>
             </section>
 
-            <section class="mod silver scope" data-sec="scope" tabindex="0" role="button" aria-label="Cursor scope">
+            <section class="mod silver handles2 scope" data-sec="scope" tabindex="0" role="button" aria-label="Cursor scope">
               <div class="crt-bezel">
-                <canvas id="scope" width="560" height="360" aria-hidden="true"></canvas>
+                <canvas id="scope" width="560" height="400" aria-hidden="true"></canvas>
                 <span class="crt-pill crt-l" aria-hidden="true">LIVE</span>
                 <span class="crt-title" aria-hidden="true">CURSOR SCOPE</span>
                 <span class="crt-pill crt-r" aria-hidden="true">LAST 10 S</span>
@@ -119,19 +126,21 @@
               </div>
             </section>
 
-            <div class="split">
-              <section class="mod black half" data-sec="gauge" tabindex="0" role="button" aria-label="Motion gauge">
+            <div class="split black">
+              <section class="mod half" data-sec="gauge" tabindex="0" role="button" aria-label="Motion gauge">
                 <span class="lab light">MOTION</span>
-                <svg class="gauge" viewBox="-60 -56 120 66" aria-hidden="true">
-                  <path class="g-face" d="M-52 0A52 52 0 0 1 52 0Z"/>
-                  <g id="gauge-ticks"></g>
-                  <text class="g-num" x="-29" y="-5">0</text>
-                  <text class="g-num" x="29" y="-5">100</text>
-                  <line class="g-needle" id="gauge-needle" x1="0" y1="0" x2="0" y2="-44"/>
-                  <circle class="g-pin" r="4"/>
-                </svg>
+                <div class="gauge-box">
+                  <svg class="gauge" viewBox="-60 -56 120 66" aria-hidden="true">
+                    <path class="g-face" d="M-52 0A52 52 0 0 1 52 0Z"/>
+                    <g id="gauge-ticks"></g>
+                    <text class="g-num" x="-29" y="-5">0</text>
+                    <text class="g-num" x="29" y="-5">100</text>
+                    <line class="g-needle" id="gauge-needle" x1="0" y1="0" x2="0" y2="-44"/>
+                    <circle class="g-pin" r="4"/>
+                  </svg>
+                </div>
               </section>
-              <section class="mod black half" data-sec="health" tabindex="0" role="button" aria-label="System health">
+              <section class="mod half" data-sec="health" tabindex="0" role="button" aria-label="System health">
                 <span class="lab light">SYSTEM HEALTH</span>
                 <div class="health-glass">
                   <b id="health-pct">&gt;99.99%</b>
@@ -140,6 +149,7 @@
               </section>
             </div>
           </div>
+          <div class="rack-base" aria-hidden="true"><i></i></div>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=ce7a06deb1';
-import { figure, segmentPoints } from './figures.js?v=ce7a06deb1';
+import { PAGES, SECTIONS, TOC } from './content.js?v=bc99778ac9';
+import { figure, segmentPoints } from './figures.js?v=bc99778ac9';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -128,9 +128,11 @@ const GLYPHS = { 0: 0b0111111, 1: 0b0000110, 2: 0b1011011, 3: 0b1001111, 4: 0b11
 function makeSeg(host) {
   const parts = [];
   let x = 0;
+  // data-dp 가 있으면 원본 상단 표시처럼 자리마다 꺼진 소수점이 붙는다.
+  const dp = 'dp' in host.dataset ? `<circle class="s" cx="${DIGIT.w + 2.4}" cy="${DIGIT.h - 2}" r="1.8"/>` : '';
   for (const ch of host.dataset.pattern) {
     if (ch === '8') {
-      parts.push(`<g class="d" transform="translate(${x} 0)">${SEG_ORDER.map((key) => `<polygon class="s" points="${DIGIT_POINTS[key]}"/>`).join('')}</g>`);
+      parts.push(`<g class="d" transform="translate(${x} 0)">${SEG_ORDER.map((key) => `<polygon class="s" points="${DIGIT_POINTS[key]}"/>`).join('')}${dp}</g>`);
       x += DIGIT.advance;
     } else if (ch === ':') {
       const cx = x + 2;
@@ -347,7 +349,7 @@ function updateRank(now) {
 }
 
 function updateDisplays(now) {
-  seg.travel(digitsOf(live.travel, 12));
+  seg.travel(digitsOf(live.travel, 14));
   const secs = Math.floor((now - live.start) / 1000);
   seg.session(`${pad2(Math.floor(secs / 3600) % 100)}${pad2(Math.floor(secs / 60) % 60)}${pad2(secs % 60)}`);
   while (live.clicks.length && now - live.clicks[0] > 60000) live.clicks.shift();
@@ -358,7 +360,7 @@ function updateDisplays(now) {
   seg.local(`${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`);
   seg.wheel(digitsOf(live.wheel, 10));
   const fps = Math.round(live.fps);
-  seg.fps(digitsOf(fps, 3));
+  seg.fps(digitsOf(fps, 6));
   fpsLampY.classList.toggle('on', fps < 45);
   fpsLampG.classList.toggle('on', fps >= 45);
   const lit = clamp(Math.round(fps / 5), 0, 12);
@@ -381,25 +383,30 @@ function updateDisplays(now) {
 
 const rollLines = $('#roll-lines');
 const lamps = [$('#lamp-a'), $('#lamp-b')];
-const ROLL_LINE = 9.4;
+const ROLL_LINE = 24;
 let lastLog = { key: '', at: 0 };
 
-function printLine(text, cls = '') {
-  const line = document.createElement('div');
-  line.textContent = text;
-  if (cls) line.className = cls;
-  rollLines.prepend(line);
+/** 원본 영수증처럼 작은 설명 줄 아래에 큰 값을 오른쪽 정렬로 찍는다. */
+function printEntry(caption, value, cls = '') {
+  const entry = document.createElement('div');
+  entry.className = cls ? `entry ${cls}` : 'entry';
+  const small = document.createElement('small');
+  small.textContent = caption;
+  const big = document.createElement('b');
+  big.textContent = value;
+  entry.append(small, big);
+  rollLines.prepend(entry);
   while (rollLines.children.length > 32) rollLines.lastElementChild.remove();
 }
 
-/** 새 줄은 늘 투입구 바로 아래(맨 위)에 찍히고, 종이가 한 줄만큼 밀려 나온다. */
+/** 새 줄은 늘 투입구 바로 아래(맨 위)에 찍히고, 종이가 한 칸만큼 밀려 나온다. */
 function log(verb, subject) {
   const now = performance.now();
   const key = `${verb} ${subject}`;
   if (key === lastLog.key && now - lastLog.at < 700) return;
   lastLog = { key, at: now };
   const d = new Date();
-  printLine(`${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())} ${verb.padEnd(5, ' ')} ${subject}`);
+  printEntry(`${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}  ${verb}`, subject);
   if (!still()) {
     rollLines.animate([{ transform: `translateY(${-ROLL_LINE}px)` }, { transform: 'translateY(0)' }], { duration: 280, easing: 'cubic-bezier(.3,.7,.3,1)' });
   }
@@ -412,8 +419,12 @@ function log(verb, subject) {
 
 /* ---------- 카메라 ---------- */
 
-// 기본 화면에 담는 장면 범위(세계 좌표).
-const HOME = { x: 290, y: 146, w: 1020, h: 770 };
+// 기본 화면에 담는 장면 범위(세계 좌표). 레퍼런스 영상의 기본 화면(16:9)과 같은 구도다.
+const HOME = { x: 75, y: 109, w: 1446, h: 815 };
+// 설명서를 펼친 채 특정 섹션이 없는 페이지(표지, 차례 등)에서 남은 공간에 담는 범위.
+const OVERVIEW = { x: 236, y: 118, w: 1128, h: 806 };
+// 세로로 긴 화면(휴대폰)에서는 원본 구도로는 기계가 너무 작아서 기계 위주로 담는다.
+const PORTRAIT = { x: 300, y: 160, w: 1000, h: 760 };
 const HUD_GAP = 50;
 const vp = { w: window.innerWidth, h: window.innerHeight };
 const cam = { x: 800, y: 574, s: 1 };
@@ -457,7 +468,8 @@ function cameraArea() {
     if (manual.layout === 'side') return { x: 14, y: HUD_GAP, w: Math.max(120, manual.box.left - 28), h: vp.h - HUD_GAP * 2 };
     return { x: 14, y: HUD_GAP, w: vp.w - 28, h: Math.max(100, manual.box.top - HUD_GAP - 12) };
   }
-  return { x: 10, y: HUD_GAP - 6, w: vp.w - 20, h: vp.h - (HUD_GAP - 6) * 2 };
+  // 원본처럼 장면이 화면 전체를 채우고, 버튼 줄은 그 위에 떠 있다.
+  return { x: 0, y: 0, w: vp.w, h: vp.h };
 }
 
 function focusRect(id) {
@@ -481,7 +493,8 @@ function focusRect(id) {
 function cameraTarget() {
   const area = cameraArea();
   const page = PAGES[manual.index];
-  if (!manual.open || !page.sec) return frameRect(HOME, area);
+  if (!manual.open) return frameRect(vp.w < vp.h ? PORTRAIT : HOME, area);
+  if (!page.sec) return frameRect(OVERVIEW, area);
   const maxScale = frameRect(HOME, { x: 0, y: 0, w: vp.w, h: vp.h }).s * 2.6;
   return frameRect(focusRect(page.sec), area, maxScale);
 }
@@ -1299,8 +1312,7 @@ layoutBook();
 paintAudio();
 paintVideo();
 moveCamera(cameraTarget(), 0);
-printLine('HOON MK I  EVENT LOG');
-printLine('- - - - - - - - - - - - -', 'sep');
+printEntry('HOON MK I', 'EVENT LOG', 'head');
 log('POWER', 'ON');
 updateDisplays(performance.now());
 requestAnimationFrame(loop);

@@ -1,4 +1,4 @@
-import { icon } from './icons.js?v=ce7a06deb1';
+import { icon } from './icons.js?v=bc99778ac9';
 
 const SHAPES = 'path, circle, rect, line, polyline, polygon, ellipse';
 const DRAW_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
