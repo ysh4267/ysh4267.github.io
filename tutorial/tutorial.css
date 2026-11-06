@@ -734,8 +734,9 @@ body.page-drag, body.page-drag * { cursor: var(--cur-grabbing) !important; }
 .hinge, .tilt { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; }
 .strip { position: absolute; left: 0; top: 0; height: 940px; overflow: hidden; transform-origin: 0 50%; backface-visibility: visible; }
 .strip > .page { inset: auto; left: 0; top: 0; width: 560px; height: 940px; transform-origin: 0 0; }
-/* 띠 양 끝의 그늘은 이웃한 띠와 같은 값으로 맞춘 그라디언트라 띠 경계가 보이지 않는다. */
-.strip-shade { position: absolute; inset: 0; pointer-events: none; }
+/* 띠 양 끝의 그늘은 이웃한 띠와 같은 값으로 맞춘 그라디언트라 띠 경계가 보이지 않는다.
+   그늘은 띠 안의 페이지에 붙어 있어서 페이지 모양 밖(빈 곳)은 칠하지 않는다. */
+.strip-shade { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
 
 .stack { position: absolute; inset: 0; transform: translateZ(-6px); }
 .stack::before, .stack::after { content: ''; position: absolute; inset: 0; border-radius: 2px 6px 6px 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.16); }

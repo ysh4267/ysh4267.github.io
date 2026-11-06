@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=e123869de2';
-import { figure, segmentPoints } from './figures.js?v=e123869de2';
+import { PAGES, SECTIONS, TOC } from './content.js?v=997efecaa0';
+import { figure, segmentPoints } from './figures.js?v=997efecaa0';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -1022,9 +1022,11 @@ function makeTurn(turningIndex, stayingIndex, forward) {
     const copy = pageEls[turningIndex].cloneNode(true);
     copy.hidden = false;
     copy.classList.remove('under');
+    // 그늘은 페이지 안에 넣는다. 접히는 선이 기울면 띠가 페이지 밖으로 비어져 나오는데, 띠에 칠하면 그 빈 곳까지 어두워진다.
     const shade = document.createElement('i');
     shade.className = 'strip-shade';
-    strip.append(copy, shade);
+    copy.append(shade);
+    strip.append(copy);
     tilt.append(strip);
     strips.push({ el: strip, copy, shade, cut: '', look: '', shown: true });
   }
@@ -1120,7 +1122,8 @@ function poseTurn(t) {
       }
       const a = Math.atan2(next[1] - prev[1], next[0] - prev[0]);
       strip.el.style.transform = `translate3d(${prev[0].toFixed(2)}px, ${tMin.toFixed(2)}px, ${prev[1].toFixed(2)}px) rotateY(${(-a).toFixed(4)}rad)`;
-      const look = `linear-gradient(90deg, rgba(11, 12, 12, ${shadeAt(prev[2]).toFixed(3)}), rgba(11, 12, 12, ${shadeAt(next[2]).toFixed(3)}))`;
+      // 페이지 안에서 띠의 가로 방향(접히는 선에 수직)으로 칠한다. 그라디언트 선은 페이지 모서리 중 sMin 인 곳에서 시작한다.
+      const look = `linear-gradient(${(90 + (phi * 180) / Math.PI).toFixed(3)}deg, rgba(11, 12, 12, ${shadeAt(prev[2]).toFixed(3)}) ${(s0 - sMin).toFixed(2)}px, rgba(11, 12, 12, ${shadeAt(next[2]).toFixed(3)}) ${(s0 + w - sMin).toFixed(2)}px)`;
       if (look !== strip.look) {
         strip.look = look;
         strip.shade.style.background = look;
@@ -1264,7 +1267,8 @@ function beginDrag(forward) {
   const from = manual.index;
   const to = forward ? from + 1 : from - 1;
   if (to < 0 || to >= PAGES.length || still()) return false;
-  finishTurn();
+  // 앞선 넘김이 아직 움직이는 중이면 그 그림만 치운다. finishTurn 은 지금 잡은 손(drag.pending)까지 놓아 버린다.
+  endTurn();
   turn = makeTurn(forward ? from : to, forward ? to : from, forward);
   turn.drag = { from, to };
   if (forward) {

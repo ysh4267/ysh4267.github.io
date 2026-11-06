@@ -1,5 +1,5 @@
-import { readStore, writeStore } from './dom.js?v=e123869de2';
-import { LOCKED } from './locked-tools.js?v=e123869de2';
+import { readStore, writeStore } from './dom.js?v=997efecaa0';
+import { LOCKED } from './locked-tools.js?v=997efecaa0';
 
 /**
  * 숨겨 둔 도구 목록을 비밀 코드로 푼다. 서버가 없으므로 공개 파일에는 암호문만 두고, 코드로 만든 키로 브라우저에서 복호화한다.
