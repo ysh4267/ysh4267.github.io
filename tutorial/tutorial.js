@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=a9bb7d24f0';
-import { figure, segmentPoints } from './figures.js?v=a9bb7d24f0';
+import { PAGES, SECTIONS, TOC } from './content.js?v=e123869de2';
+import { figure, segmentPoints } from './figures.js?v=e123869de2';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];

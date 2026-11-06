@@ -62,7 +62,7 @@ export const WEB_APPS = [
   {
     id: 'interactions',
     name: 'Interactions',
-    summary: '골라 둔 인터랙션을 같은 모양, 같은 움직임으로 다시 만들어 모아 둔 페이지',
+    summary: 'Interactions rebuilt to look and move like their references',
     icon: 'mouse-pointer-click',
     url: 'https://ysh4267.github.io/interactions/',
     size: [1280, 800],
