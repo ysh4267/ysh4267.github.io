@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=167df14cfd';
-import { figure, segmentPoints } from './figures.js?v=167df14cfd';
+import { PAGES, SECTIONS, TOC } from './content.js?v=a9bb7d24f0';
+import { figure, segmentPoints } from './figures.js?v=a9bb7d24f0';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -111,7 +111,6 @@ const sound = (() => {
     wake: ready,
     // 누를 때 나는 짧고 높은 삑 소리. 마우스를 올릴 때는 소리를 내지 않는다.
     click: () => beep(2400, 0.035, 0.018),
-    flip: () => hiss({ length: 0.36, peak: 0.13, from: 700, to: 2600, q: 0.7 }),
     whoosh: () => hiss({ length: 0.42, peak: 0.09, type: 'lowpass', from: 380, to: 2200 }),
   };
 })();
@@ -1083,8 +1082,9 @@ function poseTurn(t) {
     const wx = nx * ca - nz * sa;
     const wz = nx * sa + nz * ca;
     const lit = Math.abs(wx * LIGHT.x + wz * LIGHT.z);
-    const back = 0.05 * smooth(clamp(-wz / 0.3, 0, 1));
-    return clamp((0.96 - lit) * 0.72 + back, 0, 0.62);
+    // 종이는 얇고 밝아서, 빛을 비스듬히 받아도 회색 정도로만 어두워진다.
+    const back = 0.035 * smooth(clamp(-wz / 0.3, 0, 1));
+    return clamp((0.96 - lit) * 0.42 + back, 0, 0.34);
   };
   // 그림자용: 띠 가운데 줄의 점을 실제 공간으로 옮겨, 접히는 선에 수직으로 가장 바깥인 곳과 가장 높은 곳을 찾는다.
   const tMid = (tMin + tMax) / 2;
@@ -1135,8 +1135,8 @@ function poseTurn(t) {
   const under = t.underShade.style;
   under.setProperty('--sa', `${((phi * 180) / Math.PI).toFixed(2)}deg`);
   under.setProperty('--sx', `${(clamp(maxS, sMin, sMax) - sMin).toFixed(1)}px`);
-  under.setProperty('--sw', `${(50 + 0.5 * maxZ).toFixed(1)}px`);
-  under.opacity = (0.55 * lift * cover).toFixed(3);
+  under.setProperty('--sw', `${(16 + 0.2 * maxZ).toFixed(1)}px`);
+  under.opacity = (0.62 * lift * cover).toFixed(3);
 }
 
 /** 자세 변화를 차례로 이어 붙인다. 각 다리는 (eased u) => 자세 함수를 가진다. */
@@ -1222,7 +1222,6 @@ function commitPage(index) {
   manual.index = index;
   syncPage();
   log('PAGE', pad2(index));
-  sound.flip();
 }
 
 /** 버튼, 차례, 페이지 클릭으로 넘길 때. 자동으로 휘며 넘어간다. */

@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Geist+Mono:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="tutorial.css?v=167df14cfd">
-  <script type="module" src="tutorial.js?v=167df14cfd"></script>
+  <link rel="stylesheet" href="tutorial.css?v=a9bb7d24f0">
+  <script type="module" src="tutorial.js?v=a9bb7d24f0"></script>
 </head>
 <body class="booting">
   <!-- 장면: 카메라가 이 안의 #world 를 옮기고 키운다. 좌표는 1600 x 1000 기준. -->
@@ -28,6 +28,8 @@
         <div class="leg leg-l"></div>
         <div class="leg leg-r"></div>
       </div>
+      <!-- 책상 위 물건이 닿은 자리의 그림자. 물건보다 먼저 그려서 물건 밑에 깔린다. -->
+      <div class="contact" aria-hidden="true"><i class="c-machine"></i><i class="c-keyboard"></i><i class="c-mug"></i><i class="c-llama"></i><i class="c-book"></i><i class="c-books"></i></div>
 
       <!-- 소품은 사진 이미지(props/)다. 탁상시계는 바늘만 그려서 실제 시각을 가리킨다. -->
       <div class="clock-prop" aria-hidden="true">

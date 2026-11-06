@@ -59,4 +59,12 @@ export const WEB_APPS = [
     url: 'tutorial/',
     size: [1280, 800],
   },
+  {
+    id: 'interactions',
+    name: 'Interactions',
+    summary: '골라 둔 인터랙션을 같은 모양, 같은 움직임으로 다시 만들어 모아 둔 페이지',
+    icon: 'mouse-pointer-click',
+    url: 'https://ysh4267.github.io/interactions/',
+    size: [1280, 800],
+  },
 ];

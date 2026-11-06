@@ -518,7 +518,16 @@ a { color: inherit; cursor: var(--cur-hand); }
 .health-bar i.on { background: linear-gradient(#7fec6a, #34c63e); box-shadow: 0 0 5px rgba(80, 240, 90, 0.65); }
 
 /* 소품: 사진처럼 만든 이미지(props/)를 붙인다. 위치와 크기는 원본 기본 화면에서 잰 값에 맞췄다.
-   흰색 규칙에 맞춰 이미지의 가장 밝은 부분도 옅은 회색 아래로 눌러 두었다. 그림자는 이미지 모양을 따라 drop-shadow 로 준다. */
+   흰색 규칙에 맞춰 이미지의 가장 밝은 부분도 옅은 회색 아래로 눌러 두었다.
+   책상 위 물건은 아래로 밀린 그림자를 두면 떠 보이므로, 닿은 자리에만 납작한 그림자(.contact)를 깐다.
+   기계 위 물건은 카메라가 기계 윗면보다 낮아 밑동이 기계 앞 모서리에 가려지게 조금 내려 둔다. */
+.contact i { position: absolute; display: block; border-radius: 50%; background: radial-gradient(closest-side, rgba(38, 24, 10, 0.62), rgba(38, 24, 10, 0.26) 62%, rgba(38, 24, 10, 0)); }
+.c-machine { left: 466px; top: 811px; width: 668px; height: 18px; }
+.c-keyboard { left: 396px; top: 805px; width: 84px; height: 13px; }
+.c-mug { left: 366px; top: 806px; width: 60px; height: 11px; }
+.c-llama { left: 308px; top: 807px; width: 46px; height: 9px; }
+.c-book { left: 1112px; top: 809px; width: 70px; height: 13px; }
+.c-books { left: 1170px; top: 809px; width: 58px; height: 13px; }
 .keyboard {
   position: absolute;
   left: 373px;
@@ -530,7 +539,6 @@ a { color: inherit; cursor: var(--cur-hand); }
   /* 원본처럼 기계 왼쪽에 비스듬히 기대 서 있다. 오른쪽 아래 모서리를 축으로 돌려 왼쪽이 멀어진다. */
   transform: perspective(1400px) rotateY(-48deg) rotate(3deg);
   transform-origin: 100% 100%;
-  filter: drop-shadow(-4px 7px 7px rgba(20, 30, 34, 0.3));
 }
 
 .mug {
@@ -540,7 +548,6 @@ a { color: inherit; cursor: var(--cur-hand); }
   width: 63px;
   height: 56px;
   background: url('props/mug.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(4px 6px 6px rgba(20, 30, 34, 0.28));
 }
 
 /* 책상 위의 파란 라마. 원본처럼 왼쪽을 본다. */
@@ -551,18 +558,17 @@ a { color: inherit; cursor: var(--cur-hand); }
   width: 41px;
   height: 50px;
   background: url('props/llama.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(3px 4px 4px rgba(20, 30, 34, 0.26));
 }
 
 /* 탁상시계: 사진에는 바늘이 없고, 바늘만 SVG 로 그려 지금 시각을 가리킨다. 바늘 SVG 의 중심과 크기는 사진의 문자판에 맞춘 값이다. */
 .clock-prop {
   position: absolute;
   left: 540px;
-  top: 181px;
+  top: 185px;
   width: 48px;
   height: 53.8px;
   background: url('props/clock.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(2px 3px 3px rgba(20, 30, 34, 0.25));
+  filter: drop-shadow(3px 0 4px rgba(20, 30, 34, 0.22));
 }
 .clock-prop svg { position: absolute; left: -1.7px; top: -2px; display: block; width: 51.7px; height: 51.7px; overflow: visible; filter: drop-shadow(0.5px 0.8px 0.5px rgba(0, 0, 0, 0.35)); }
 .clock-h { stroke: #1a1a1a; stroke-width: 3.2; stroke-linecap: round; }
@@ -574,22 +580,22 @@ a { color: inherit; cursor: var(--cur-hand); }
 .cap {
   position: absolute;
   left: 636px;
-  top: 156px;
+  top: 164px;
   width: 109px;
   height: 80px;
   background: url('props/cap.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(3px 4px 5px rgba(20, 30, 34, 0.3));
+  filter: drop-shadow(4px 0 5px rgba(20, 30, 34, 0.24));
 }
 
 /* 위에 쌓인 책 세 권 (맨 아래 책은 바랜 회색) */
 .books-top {
   position: absolute;
   left: 853px;
-  top: 166px;
+  top: 171px;
   width: 151px;
   height: 69px;
   background: url('props/books-top.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(3px 4px 5px rgba(20, 30, 34, 0.28));
+  filter: drop-shadow(4px 0 5px rgba(20, 30, 34, 0.24));
 }
 
 .manual-book {
@@ -600,7 +606,6 @@ a { color: inherit; cursor: var(--cur-hand); }
   height: 168px;
   display: block;
   background: url('props/manual-book.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(5px 5px 8px rgba(20, 30, 34, 0.28));
 }
 .side-books {
   position: absolute;
@@ -609,7 +614,6 @@ a { color: inherit; cursor: var(--cur-hand); }
   width: 46px;
   height: 134px;
   background: url('props/side-books.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(4px 5px 7px rgba(20, 30, 34, 0.25));
 }
 
 /* 영수증 종이: 흰 종이 대신 바랜 감열지 색. 원본처럼 작은 설명 줄과 큰 값 줄이 번갈아 찍힌다. */
@@ -755,8 +759,9 @@ body.page-drag, body.page-drag * { cursor: var(--cur-grabbing) !important; }
   text-transform: uppercase;
 }
 .page.under { transform: translateZ(-1px); }
-/* 들린 페이지 그림자: 들린 부분 아래(--sx 까지)가 가장 어둡고 바깥으로 --sw 만큼 옅어진다. 접히는 선이 기울면 --sa 만큼 같이 기운다. */
-.page.under > .shade { background: linear-gradient(calc(90deg + var(--sa, 0deg)), rgba(11, 12, 12, 0.5) var(--sx, 0px), rgba(11, 12, 12, 0) calc(var(--sx, 0px) + var(--sw, 120px))); }
+/* 들린 페이지 그림자: 들린 부분의 바깥 끝(--sx) 바로 옆에서 가장 짙고 --sw 만큼 옅어진다.
+   들린 페이지 밑은 페이지가 가리므로 비워 둔다. 접히는 선이 기울면 --sa 만큼 같이 기운다. */
+.page.under > .shade { background: linear-gradient(calc(90deg + var(--sa, 0deg)), rgba(18, 20, 20, 0) calc(var(--sx, 0px) - 12px), rgba(18, 20, 20, 0.34) var(--sx, 0px), rgba(18, 20, 20, 0) calc(var(--sx, 0px) + var(--sw, 40px))); }
 .shade {
   position: absolute;
   inset: 0;
