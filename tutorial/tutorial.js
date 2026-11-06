@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=bc99778ac9';
-import { figure, segmentPoints } from './figures.js?v=bc99778ac9';
+import { PAGES, SECTIONS, TOC } from './content.js?v=21f9c768cc';
+import { figure, segmentPoints } from './figures.js?v=21f9c768cc';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -594,6 +594,8 @@ function makePop() {
     y: 0,
     w: 0,
     h: 0,
+    rx: 0,
+    ry: 0,
     anims: [],
     parts: { kind: $('.k', el), num: $('.pop-num', el), title: $('.pop-title', el), text: $('.pop-body', el) },
   };
@@ -623,15 +625,29 @@ function chooseSide(pop, r) {
   if (below && r.bottom + POP.gapY + pop.h > bounds.bottom) below = false;
   pop.side = side;
   pop.below = below;
+  // 대상과 이어진 모서리(연결선이 닿는 쪽)를 축으로 3D 회전한다. 그 모서리는 제자리에 있고 반대쪽이 앞뒤로 움직인다.
+  pop.el.style.transformOrigin = `${side === 'r' ? '0%' : '100%'} ${below ? '0%' : '100%'}`;
+}
+
+// 레퍼런스 영상에서 잰 값: 원근 약 800px, 커서가 대상 가장자리에 있을 때 좌우 6.5도, 위아래 7.5도.
+// (영상 6.7초: 오른쪽 변/왼쪽 변 1.033, 아랫변/윗변 1.010. 7.3초: 왼쪽/오른쪽 1.019)
+const POP_TILT = { perspective: 800, y: 6.5, x: 7.5 };
+
+/** 커서가 대상 중심에서 벗어난 쪽을 팝업이 바라보도록 기울인다. */
+function popTilt(pop, r) {
+  if (!pop.follow || !pointer.seen) return { rx: 0, ry: 0 };
+  const nx = clamp((pointer.x - (r.left + r.width / 2)) / Math.max(1, r.width / 2), -1, 1);
+  const ny = clamp((pointer.y - (r.top + r.height / 2)) / Math.max(1, r.height / 2), -1, 1);
+  return { rx: -POP_TILT.x * ny, ry: POP_TILT.y * nx };
 }
 
 function popTarget(pop, r) {
   let x = pop.side === 'r' ? r.right - POP.overlap : r.left + POP.overlap - pop.w;
   let y = pop.below ? r.bottom + POP.gapY : r.top - POP.gapY - pop.h;
   if (pop.follow && pointer.seen) {
-    // 포인터를 따라 살짝 끌려간다.
-    x += clamp((pointer.x - (r.left + r.width / 2)) * 0.12, -24, 24);
-    y += clamp((pointer.y - (r.top + r.height / 2)) * 0.06, -10, 10);
+    // 포인터를 따라 살짝 끌려간다(커서가 움직인 거리의 약 10%).
+    x += clamp((pointer.x - (r.left + r.width / 2)) * 0.1, -24, 24);
+    y += clamp((pointer.y - (r.top + r.height / 2)) * 0.04, -8, 8);
   }
   const bounds = popBounds(pop);
   return {
@@ -641,7 +657,7 @@ function popTarget(pop, r) {
 }
 
 function placePop(pop, r) {
-  pop.el.style.transform = `translate(${pop.x.toFixed(1)}px, ${pop.y.toFixed(1)}px)`;
+  pop.el.style.transform = `translate(${pop.x.toFixed(1)}px, ${pop.y.toFixed(1)}px) perspective(${POP_TILT.perspective}px) rotateX(${pop.rx.toFixed(2)}deg) rotateY(${pop.ry.toFixed(2)}deg)`;
   // 대상 모서리에서 팝업 아래(또는 위) 변까지 비스듬히 잇는 선.
   const cx = pop.side === 'r' ? r.right + HL_PAD : r.left - HL_PAD;
   const cy = pop.below ? r.bottom + HL_PAD : r.top - HL_PAD;
@@ -675,7 +691,7 @@ function showPop(pop, anchor, info) {
   pop.h = pop.el.offsetHeight;
   const r = anchor.getBoundingClientRect();
   chooseSide(pop, r);
-  Object.assign(pop, popTarget(pop, r));
+  Object.assign(pop, popTarget(pop, r), popTilt(pop, r));
   placePop(pop, r);
   if (still()) return;
   // 흐릿하게 번진 채 밝게 나타났다가 곧 또렷해진다.
@@ -702,8 +718,11 @@ function updatePops(dt) {
     if (!pop.anchor) continue;
     const r = pop.anchor.getBoundingClientRect();
     const target = popTarget(pop, r);
+    const tilt = popTilt(pop, r);
     pop.x += (target.x - pop.x) * k;
     pop.y += (target.y - pop.y) * k;
+    pop.rx += (tilt.rx - pop.rx) * k;
+    pop.ry += (tilt.ry - pop.ry) * k;
     placePop(pop, r);
   }
 }
