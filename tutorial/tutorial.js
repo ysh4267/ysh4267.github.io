@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=21f9c768cc';
-import { figure, segmentPoints } from './figures.js?v=21f9c768cc';
+import { PAGES, SECTIONS, TOC } from './content.js?v=f312f17e46';
+import { figure, segmentPoints } from './figures.js?v=f312f17e46';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -778,7 +778,6 @@ const FLIP_MS = 1150;
 const manual = {
   open: false,
   index: 0,
-  flip: [],
   fly: null,
   box: null,
   layout: 'side',
@@ -895,7 +894,11 @@ function layoutBook() {
     topPx = top + (vp.h - top - bottom - BOOK.h * scale) / 2;
   }
   manual.pos.style.transform = `translate(${left.toFixed(1)}px, ${topPx.toFixed(1)}px) scale(${scale.toFixed(4)})`;
-  manual.box = { left, top: topPx, right: left + BOOK.w * scale, bottom: topPx + BOOK.h * scale };
+  manual.box = { left, top: topPx, right: left + BOOK.w * scale, bottom: topPx + BOOK.h * scale, scale };
+  // 화면 가운데에서 책을 바라보는 원근. 책이 오른쪽에 있으면 넘어가는 페이지를 왼쪽에서 비스듬히 보게 된다.
+  const ox = clamp((vp.w / 2 - left) / scale, -BOOK.w, BOOK.w * 2);
+  const oy = clamp((vp.h / 2 - topPx) / scale, 0, BOOK.h);
+  manual.book.style.perspectiveOrigin = `${ox.toFixed(0)}px ${oy.toFixed(0)}px`;
   manual.layout = portrait ? 'bottom' : 'side';
 }
 
@@ -906,12 +909,210 @@ function showOnly(index) {
   });
 }
 
-function stopFlip() {
-  if (manual.flip.length === 0) return;
-  for (const anim of manual.flip) anim.cancel();
-  manual.flip = [];
+/* ---------- 페이지 넘김: 세로 띠로 잘라 휘게 한다 ----------
+   레퍼런스 영상(13.3~14.7초)을 따른다. 잡은 쪽 끝이 먼저 말려 올라가 안쪽으로 접히는 동안 스프링 쪽은 누워 있고,
+   접힌 자리가 스프링 쪽에 다가오면 스프링 쪽이 들리며 페이지가 크게 휜 채 왼쪽으로 넘어간다.
+   왼쪽에 잠깐 머물렀다가 책 뒤로 감긴다. 되돌릴 때는 같은 모양을 거꾸로 밟으며 오른쪽에 펼쳐진다.
+   페이지를 잡고 끌면 이 과정을 손으로 조절한다.
+   자세는 네 값이다. hinge: 스프링 쪽 각도, roll: 휘기 시작하는 자리, span: 휘는 구간의 길이(둘 다 페이지 폭 비율),
+   bend: 휘는 구간에서 더 도는 각도. 각도는 도 단위이고 0 은 오른쪽에 평평, 180 은 왼쪽에 평평이다. */
+const CURL = {
+  strips: 28,
+  land: 158,
+  settle: 170,
+  behind: 292,
+  trail: -26,
+  split: 0.46,
+  fold: 0.42,
+  span: 0.26,
+  spanOver: 0.75,
+  commitAhead: 0.3,
+  commitBack: 0.72,
+  timeA: 640,
+  timeB: 520,
+  timeC: 170,
+};
+const rad = (d) => (d * Math.PI) / 180;
+const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+const easeInCubic = (t) => t * t * t;
+const smooth = (t) => t * t * (3 - 2 * t);
+const flatPose = (hinge, bend = 0) => ({ hinge, roll: 0, span: 1, bend });
+// 빛은 앞쪽 조금 왼편에서 온다. 띠가 빛을 정면으로 받을수록 밝다.
+const LIGHT = { x: -0.28, z: 0.96 };
+let turn = null;
+
+/** 넘기는 도중(0~1)의 자세. 앞 구간은 끝만 말려 접히고, 뒤 구간은 스프링 쪽이 들리며 넘어간다. */
+function curlPose(p) {
+  if (p <= CURL.split) {
+    const u = p / CURL.split;
+    return { hinge: 0, roll: 1 - (1 - CURL.fold) * u, span: CURL.span, bend: 180 * u };
+  }
+  const v = (p - CURL.split) / (1 - CURL.split);
+  const hinge = CURL.land * smooth(v);
+  const far = 180 - (180 - CURL.land) * v;
+  return { hinge, roll: CURL.fold * (1 - v) ** 1.5, span: lerp(CURL.span, CURL.spanOver, v), bend: far - hinge };
+}
+
+/** 페이지 위 s(0~1) 자리의 [x, z](책 좌표 px). 누운 구간, 원호로 휜 구간, 다시 곧은 구간을 이어 붙인다. */
+function pagePoint(pose, s) {
+  const a0 = rad(pose.hinge);
+  const k = rad(pose.bend);
+  const span = Math.max(pose.span, 1e-4);
+  const flat = Math.min(s, pose.roll);
+  let x = flat * Math.cos(a0);
+  let z = flat * Math.sin(a0);
+  if (s > pose.roll) {
+    const arc = Math.min(s - pose.roll, span);
+    if (Math.abs(k) < 1e-5) {
+      x += arc * Math.cos(a0);
+      z += arc * Math.sin(a0);
+    } else {
+      const c = k / span;
+      x += (Math.sin(a0 + c * arc) - Math.sin(a0)) / c;
+      z -= (Math.cos(a0 + c * arc) - Math.cos(a0)) / c;
+    }
+    const rest = s - pose.roll - span;
+    if (rest > 0) {
+      x += rest * Math.cos(a0 + k);
+      z += rest * Math.sin(a0 + k);
+    }
+  }
+  return [x * BOOK.w, z * BOOK.w];
+}
+
+// 끌기용 손잡이 위치표. 페이지 끝의 x 와 고르게 줄어드는 직선을 반씩 섞어, 진행도가 늘면 늘 왼쪽으로만 가게 한다.
+const HANDLE = (() => {
+  const n = 128;
+  const edge = Array.from({ length: n + 1 }, (_, i) => pagePoint(curlPose(i / n), 1)[0]);
+  return edge.map((x, i) => 0.5 * x + 0.5 * lerp(edge[0], edge[n], i / n));
+})();
+
+/** 손잡이가 x 에 오는 진행도. */
+function progressAt(x) {
+  const n = HANDLE.length - 1;
+  if (x >= HANDLE[0]) return 0;
+  for (let i = 1; i <= n; i += 1) {
+    if (HANDLE[i] <= x) {
+      const a = HANDLE[i - 1];
+      return (i - 1 + (a - x) / Math.max(a - HANDLE[i], 1e-6)) / n;
+    }
+  }
+  return 1;
+}
+
+function makeTurn(turningIndex, stayingIndex, forward) {
+  const flipper = document.createElement('div');
+  flipper.className = 'flipper';
+  const stripW = BOOK.w / CURL.strips;
+  const strips = [];
+  for (let i = 0; i < CURL.strips; i += 1) {
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    // 이웃한 띠와 조금 겹쳐야 휘었을 때 틈이 보이지 않는다.
+    strip.style.width = `${stripW + 0.8}px`;
+    const copy = pageEls[turningIndex].cloneNode(true);
+    copy.hidden = false;
+    copy.classList.remove('under');
+    copy.style.transform = `translateX(${-i * stripW}px)`;
+    const shade = document.createElement('i');
+    shade.className = 'strip-shade';
+    strip.append(copy, shade);
+    flipper.append(strip);
+    strips.push({ el: strip, shade });
+  }
+  manual.book3d.insertBefore(flipper, manual.rings);
+  pageEls.forEach((el, i) => {
+    el.hidden = i !== stayingIndex;
+    el.classList.toggle('under', i === stayingIndex);
+  });
+  const under = pageEls[stayingIndex];
+  return { el: flipper, strips, forward, under, underShade: $('.shade', under), ...flatPose(0), p: 0, gain: 1, legs: [], leg: null, done: null };
+}
+
+function poseTurn(t) {
+  const n = t.strips.length;
+  const pts = [];
+  let maxX = 0;
+  let maxZ = 0;
+  for (let i = 0; i <= n; i += 1) {
+    const pt = pagePoint(t, i / n);
+    pts.push(pt);
+    maxX = Math.max(maxX, pt[0]);
+    maxZ = Math.max(maxZ, pt[1]);
+  }
+  for (let i = 0; i < n; i += 1) {
+    const [x, z] = pts[i];
+    const a = Math.atan2(pts[i + 1][1] - z, pts[i + 1][0] - x);
+    const strip = t.strips[i];
+    strip.el.style.transform = `translate3d(${x.toFixed(2)}px, 0, ${z.toFixed(2)}px) rotateY(${((-a * 180) / Math.PI).toFixed(2)}deg)`;
+    // 앞뒤 면 모두 빛을 정면으로 받을수록 밝다. 뒷면이 보이면 조금 더 어둡다.
+    const lit = Math.abs(-Math.sin(a) * LIGHT.x + Math.cos(a) * LIGHT.z);
+    const back = Math.cos(a) < 0 ? 0.05 : 0;
+    strip.shade.style.opacity = clamp((0.96 - lit) * 0.72 + back, 0, 0.62).toFixed(3);
+  }
+  // 들린 페이지가 아래 페이지에 드리우는 그림자. 들린 부분 아래가 가장 어둡고 오른쪽으로 옅어진다.
+  const lift = clamp(maxZ / (BOOK.w * 0.3), 0, 1);
+  const cover = clamp((176 - t.hinge) / 40, 0, 1);
+  t.underShade.style.setProperty('--sx', `${Math.min(maxX, BOOK.w).toFixed(1)}px`);
+  t.underShade.style.setProperty('--sw', `${(50 + 0.5 * maxZ).toFixed(1)}px`);
+  t.underShade.style.opacity = (0.55 * lift * cover).toFixed(3);
+}
+
+/** 자세 변화를 차례로 이어 붙인다. 각 다리는 (eased u) => 자세 함수를 가진다. */
+function runLegs(t, legs, done) {
+  t.legs = legs.slice();
+  t.done = done;
+  nextLeg(t);
+}
+
+function nextLeg(t) {
+  const leg = t.legs.shift();
+  if (!leg) {
+    t.leg = null;
+    const done = t.done;
+    t.done = null;
+    done?.();
+    return;
+  }
+  t.leg = { ...leg, start: performance.now() };
+}
+
+function stepTurn(now) {
+  const t = turn;
+  if (!t || !t.leg) return;
+  const { start, ms, ease, fn } = t.leg;
+  const u = ms > 0 ? clamp((now - start) / ms, 0, 1) : 1;
+  Object.assign(t, fn((ease ?? easeInOutCubic)(u)));
+  poseTurn(t);
+  if (u >= 1) nextLeg(t);
+}
+
+// 다리(자세 변화) 모음
+const legCurl = (p0, p1, ms, ease) => ({ ms, ease, fn: (u) => ({ ...curlPose(lerp(p0, p1, u)), p: lerp(p0, p1, u) }) });
+const legSettle = (from, to, ms, ease) => ({ ms, ease, fn: (u) => flatPose(lerp(from, to, u)) });
+const legWrap = (from, to, bendFrom, bendTo, ms, ease) => ({ ms, ease, fn: (u) => flatPose(lerp(from, to, u), lerp(bendFrom, bendTo, u)) });
+
+function endTurn() {
+  if (!turn) return;
+  const t = turn;
+  turn = null;
+  t.el.remove();
+  t.underShade.style.opacity = '';
+  t.underShade.style.removeProperty('--sx');
+  t.underShade.style.removeProperty('--sw');
   showOnly(manual.index);
 }
+
+/** 진행 중인 넘김을 즉시 끝 상태로 보낸다. */
+function finishTurn() {
+  if (!turn) return;
+  drag.active = false;
+  drag.pending = null;
+  body.classList.remove('page-drag');
+  endTurn();
+}
+
+const stopFlip = finishTurn;
 
 /** 펼친 페이지에 맞춰 카메라를 옮기고 그 섹션에 테두리를 띄운다. */
 function syncPage(duration = FLIP_MS) {
@@ -934,53 +1135,122 @@ function syncPage(duration = FLIP_MS) {
   $('#btn-next').setAttribute('aria-disabled', String(manual.index === PAGES.length - 1));
 }
 
-// 페이지는 왼쪽 스프링을 축으로 넘어가며 뒷면(거꾸로 비친 글)을 보이고, 끝까지 돌아 책 뒤로 감긴다.
-const TURN = [
-  { transform: 'translateZ(1px) rotateY(0deg)', offset: 0, easing: 'cubic-bezier(.45,.05,.35,1)' },
-  { transform: 'translateZ(1px) rotateY(-172deg)', offset: 0.8, easing: 'cubic-bezier(.6,0,1,.6)' },
-  { transform: 'translateZ(1px) rotateY(-292deg)', offset: 1 },
-];
-const TURN_BACK = [
-  { transform: 'translateZ(1px) rotateY(-292deg)', offset: 0, easing: 'cubic-bezier(0,.4,.4,1)' },
-  { transform: 'translateZ(1px) rotateY(-172deg)', offset: 0.2, easing: 'cubic-bezier(.65,0,.55,1)' },
-  { transform: 'translateZ(1px) rotateY(0deg)', offset: 1 },
-];
-const SHADE_TURN = [{ opacity: 0 }, { opacity: 0.55, offset: 0.4 }, { opacity: 0.2, offset: 0.78 }, { opacity: 0.45 }];
-const SHADE_BACK = [{ opacity: 0.45 }, { opacity: 0.2, offset: 0.22 }, { opacity: 0.55, offset: 0.6 }, { opacity: 0 }];
-const SHADE_UNDER = [{ opacity: 0.32 }, { opacity: 0, offset: 0.55 }, { opacity: 0 }];
-const SHADE_UNDER_BACK = [{ opacity: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 0.32 }];
-
-function flipTo(target) {
-  const index = clamp(target, 0, PAGES.length - 1);
-  if (!manual.open || index === manual.index) return;
-  stopFlip();
-  const from = manual.index;
+/** 페이지 번호를 바꾸고 카메라·테두리·기록을 맞춘다. */
+function commitPage(index) {
   manual.index = index;
   syncPage();
   log('PAGE', pad2(index));
   sound.flip();
+}
+
+/** 버튼, 차례, 페이지 클릭으로 넘길 때. 자동으로 휘며 넘어간다. */
+function flipTo(target) {
+  const index = clamp(target, 0, PAGES.length - 1);
+  if (!manual.open || index === manual.index) return;
+  finishTurn();
+  const from = manual.index;
+  commitPage(index);
   if (still()) {
     showOnly(index);
     return;
   }
   const forward = index > from;
-  const turning = pageEls[forward ? from : index];
-  const staying = pageEls[forward ? index : from];
-  staying.hidden = false;
-  staying.classList.add('under');
-  turning.hidden = false;
-  turning.classList.add('turning');
-  const turn = turning.animate(forward ? TURN : TURN_BACK, { duration: FLIP_MS });
-  manual.flip = [
-    turn,
-    $('.shade', turning).animate(forward ? SHADE_TURN : SHADE_BACK, { duration: FLIP_MS }),
-    $('.shade', staying).animate(forward ? SHADE_UNDER : SHADE_UNDER_BACK, { duration: FLIP_MS }),
-  ];
-  turn.finished.then(() => {
-    if (manual.flip[0] !== turn) return;
-    manual.flip = [];
-    showOnly(manual.index);
-  }).catch(() => {});
+  turn = makeTurn(forward ? from : index, forward ? index : from, forward);
+  if (forward) {
+    poseTurn(turn);
+    runLegs(turn, [
+      legCurl(0, 1, CURL.timeA, easeInOutCubic),
+      legSettle(CURL.land, CURL.settle, CURL.timeB, easeOutCubic),
+      legWrap(CURL.settle, CURL.behind, 0, CURL.trail, CURL.timeC, easeInCubic),
+    ], endTurn);
+  } else {
+    // 이전 페이지는 책 뒤에서 감겨 나와 왼쪽에 잠깐 선 뒤, 넘어올 때의 모양을 거꾸로 밟으며 오른쪽에 펼쳐진다.
+    Object.assign(turn, flatPose(CURL.behind, CURL.trail), { p: 1 });
+    poseTurn(turn);
+    runLegs(turn, [
+      legWrap(CURL.behind, CURL.settle, CURL.trail, 0, CURL.timeC + 50, easeOutCubic),
+      legSettle(CURL.settle, CURL.land, 220, easeInOutCubic),
+      legCurl(1, 0, CURL.timeA + 80, easeInOutCubic),
+    ], endTurn);
+  }
+}
+
+/* ---------- 페이지를 잡고 끌어 넘기기 ---------- */
+
+const drag = { pending: null, active: false, samples: [], blockClickUntil: 0 };
+
+function beginDrag(forward) {
+  const from = manual.index;
+  const to = forward ? from + 1 : from - 1;
+  if (to < 0 || to >= PAGES.length || still()) return false;
+  finishTurn();
+  turn = makeTurn(forward ? from : to, forward ? to : from, forward);
+  turn.drag = { from, to };
+  if (forward) {
+    // 스프링에서 먼 곳을 잡으면 페이지 끝이 손을 그대로 따라오고, 가까이 잡을수록 크게 따라온다.
+    turn.gain = clamp(1 / Math.max(drag.pending?.grab ?? 1, 0.42), 1, 2.4);
+    poseTurn(turn);
+  } else {
+    // 되돌릴 페이지가 먼저 책 뒤에서 감겨 나와 왼쪽에 선다. 그동안 끈 거리는 기억해 두었다가 이어 받는다.
+    turn.gain = 2;
+    Object.assign(turn, flatPose(CURL.behind, CURL.trail), { p: 1 });
+    poseTurn(turn);
+    runLegs(turn, [
+      legWrap(CURL.behind, CURL.settle, CURL.trail, 0, CURL.timeC, easeOutCubic),
+      legSettle(CURL.settle, CURL.land, 120, easeOutCubic),
+    ], () => {
+      if (drag.lastDx !== undefined) followDrag(drag.lastDx);
+    });
+  }
+  return true;
+}
+
+/** 끈 거리(책 좌표, 왼쪽이 음수)만큼 손잡이를 옮기고 그 진행도의 자세를 잡는다. */
+function followDrag(dx) {
+  drag.lastDx = dx;
+  const t = turn;
+  if (!t || t.leg) return;
+  const start = t.forward ? HANDLE[0] : HANDLE[HANDLE.length - 1];
+  const p = progressAt(start + dx * t.gain);
+  Object.assign(t, curlPose(p), { p });
+  poseTurn(t);
+}
+
+function releaseDrag(cancelled) {
+  const t = turn;
+  drag.active = false;
+  drag.pending = null;
+  body.classList.remove('page-drag');
+  if (!t || !t.drag) return;
+  // 마지막 0.12초의 속도로 휙 넘긴 것인지 본다(책 좌표/ms).
+  const now = performance.now();
+  const recent = drag.samples.filter((s) => now - s.t < 120);
+  const v = recent.length > 1 ? (recent[recent.length - 1].x - recent[0].x) / Math.max(1, recent[recent.length - 1].t - recent[0].t) : 0;
+  const { to } = t.drag;
+  if (t.leg) {
+    // 이전 페이지가 아직 감겨 나오는 중에 놓으면 그대로 책 뒤로 돌려보낸다.
+    runLegs(t, [legWrap(t.hinge, CURL.behind, t.bend, CURL.trail, CURL.timeC, easeInCubic)], endTurn);
+    return;
+  }
+  const commit = !cancelled && (t.forward ? t.p > CURL.commitAhead || v < -0.45 : t.p < CURL.commitBack || v > 0.45);
+  if (t.forward && commit) {
+    commitPage(to);
+    runLegs(t, [
+      legCurl(t.p, 1, Math.max(160, (1 - t.p) * CURL.timeA), easeOutCubic),
+      legSettle(CURL.land, CURL.settle, CURL.timeB, easeOutCubic),
+      legWrap(CURL.settle, CURL.behind, 0, CURL.trail, CURL.timeC, easeInCubic),
+    ], endTurn);
+  } else if (t.forward) {
+    runLegs(t, [legCurl(t.p, 0, Math.max(140, t.p * 520), easeOutCubic)], endTurn);
+  } else if (commit) {
+    commitPage(to);
+    runLegs(t, [legCurl(t.p, 0, Math.max(160, t.p * CURL.timeA), easeOutCubic)], endTurn);
+  } else {
+    runLegs(t, [
+      legCurl(t.p, 1, Math.max(140, (1 - t.p) * 460), easeOutCubic),
+      legWrap(CURL.land, CURL.behind, 0, CURL.trail, CURL.timeC, easeInCubic),
+    ], endTurn);
+  }
 }
 
 function setControls(open) {
@@ -1211,8 +1481,71 @@ document.addEventListener('focusout', (event) => {
   if (hover && event.target === hover.el && !hover.el.matches(':hover')) setHover(null);
 });
 
+// 페이지를 잡고 좌우로 끌면 넘기는 과정을 손으로 조절한다. 짧게 누르면 클릭으로 다음 장이 넘어간다.
+manual.book.addEventListener('pointerdown', (event) => {
+  // 새로 누르면 그 뒤의 클릭은 끌기와 상관없는 진짜 클릭이다.
+  drag.blockClickUntil = 0;
+  if (!manual.open || event.button !== 0) return;
+  if (event.target.closest('[data-goto], [data-reboot]')) return;
+  const box = manual.book.getBoundingClientRect();
+  // 스프링에서 얼마나 먼 곳을 잡았는지(0~1). 먼 곳일수록 페이지 끝이 손을 그대로 따라온다.
+  const grab = clamp((event.clientX - box.left) / Math.max(1, box.width), 0, 1);
+  drag.pending = { x: event.clientX, y: event.clientY, id: event.pointerId, grab };
+  drag.samples = [];
+  drag.lastDx = undefined;
+});
+window.addEventListener('pointermove', (event) => {
+  const pending = drag.pending;
+  if (!pending || event.pointerId !== pending.id) return;
+  const dx = event.clientX - pending.x;
+  if (!drag.active) {
+    if (Math.abs(dx) < 7 || Math.abs(dx) < Math.abs(event.clientY - pending.y)) return;
+    if (!beginDrag(dx < 0)) {
+      drag.pending = null;
+      return;
+    }
+    drag.active = true;
+    body.classList.add('page-drag');
+    try {
+      manual.book.setPointerCapture(event.pointerId);
+    } catch {
+      // 포인터를 붙잡지 못해도 창 전체에서 움직임을 받는다.
+    }
+  }
+  const dxBook = dx / (manual.box?.scale ?? 1);
+  drag.samples.push({ t: performance.now(), x: dxBook });
+  if (drag.samples.length > 12) drag.samples.shift();
+  followDrag(dxBook);
+}, { passive: true });
+// 끌기를 놓은 바로 뒤에 따라오는 클릭만 막는다. 클릭이 오지 않아도 잠시 뒤에는 저절로 풀린다.
+const CLICK_AFTER_DRAG_MS = 400;
+window.addEventListener('pointerup', (event) => {
+  if (!drag.pending || event.pointerId !== drag.pending.id) return;
+  if (drag.active) {
+    drag.blockClickUntil = performance.now() + CLICK_AFTER_DRAG_MS;
+    releaseDrag(false);
+  } else {
+    drag.pending = null;
+  }
+});
+window.addEventListener('pointercancel', (event) => {
+  if (!drag.pending || event.pointerId !== drag.pending.id) return;
+  if (drag.active) {
+    drag.blockClickUntil = performance.now() + CLICK_AFTER_DRAG_MS;
+    releaseDrag(true);
+  } else {
+    drag.pending = null;
+  }
+});
+
 manual.book.addEventListener('click', (event) => {
   if (!manual.open) return;
+  if (performance.now() < (drag.blockClickUntil ?? 0)) {
+    // 끌어서 넘긴 뒤 따라오는 클릭은 무시한다.
+    drag.blockClickUntil = 0;
+    event.preventDefault();
+    return;
+  }
   const goto = event.target.closest('[data-goto]');
   if (goto) {
     event.preventDefault();
@@ -1307,6 +1640,7 @@ function loop(now) {
   const dt = Math.min(64, now - lastFrame);
   lastFrame = now;
   const moving = stepCamera(now);
+  stepTurn(now);
   // 카메라가 움직이면 포인터 아래의 부분도 바뀐다.
   if (moving && pointer.seen && !pointer.touch) setHover(sectionAt(pointer.x, pointer.y));
   for (const hl of highlights) placeHighlight(hl);

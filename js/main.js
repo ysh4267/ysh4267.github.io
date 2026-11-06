@@ -1,8 +1,8 @@
-import { allApps, openApp, setTools } from './apps.js?v=21f9c768cc';
-import { initCard } from './card.js?v=21f9c768cc';
-import { restoreTools } from './lock.js?v=21f9c768cc';
-import { initRail } from './rail.js?v=21f9c768cc';
-import { clearActive, initWindows } from './wm.js?v=21f9c768cc';
+import { allApps, openApp, setTools } from './apps.js?v=f312f17e46';
+import { initCard } from './card.js?v=f312f17e46';
+import { restoreTools } from './lock.js?v=f312f17e46';
+import { initRail } from './rail.js?v=f312f17e46';
+import { clearActive, initWindows } from './wm.js?v=f312f17e46';
 
 initWindows(document.getElementById('windows'));
 initRail(document.getElementById('sidebar'));
