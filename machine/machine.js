@@ -1,5 +1,5 @@
-import { PAGES, SECTIONS, TOC } from './content.js?v=997efecaa0';
-import { figure, segmentPoints } from './figures.js?v=997efecaa0';
+import { PAGES, SECTIONS, TOC } from './content.js?v=8d5b71707c';
+import { figure, segmentPoints } from './figures.js?v=8d5b71707c';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -22,7 +22,8 @@ const sections = Object.fromEntries($$('[data-sec]').map((el) => [el.dataset.sec
 const store = {
   get(key, fallback) {
     try {
-      const raw = localStorage.getItem(`hoon.tutorial.${key}`);
+      // 이름이 Tutorial 이던 때 저장한 값도 이어서 쓴다.
+      const raw = localStorage.getItem(`hoon.machine.${key}`) ?? localStorage.getItem(`hoon.tutorial.${key}`);
       return raw === null ? fallback : JSON.parse(raw);
     } catch {
       return fallback;
@@ -30,7 +31,7 @@ const store = {
   },
   set(key, value) {
     try {
-      localStorage.setItem(`hoon.tutorial.${key}`, JSON.stringify(value));
+      localStorage.setItem(`hoon.machine.${key}`, JSON.stringify(value));
     } catch {
       // 저장이 막혀 있어도 화면은 그대로 동작한다.
     }

@@ -1,4 +1,4 @@
-/* Tutorial: HOON MK I. 장면(#world)은 카메라가 움직이고, 강조 테두리·팝업·설명서·버튼은 화면 좌표에 그린다. */
+/* Machine: HOON MK I. 장면(#world)은 카메라가 움직이고, 강조 테두리·팝업·설명서·버튼은 화면 좌표에 그린다. */
 
 :root {
   --mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

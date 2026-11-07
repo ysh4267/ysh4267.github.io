@@ -1,7 +1,7 @@
-import { allApps, openApp, setTools, toolApps } from './apps.js?v=997efecaa0';
-import { h } from './dom.js?v=997efecaa0';
-import { forgetTools, unlockTools } from './lock.js?v=997efecaa0';
-import { drawIcon, namedIcon } from './motion.js?v=997efecaa0';
+import { allApps, openApp, setTools, toolApps } from './apps.js?v=8d5b71707c';
+import { h } from './dom.js?v=8d5b71707c';
+import { forgetTools, unlockTools } from './lock.js?v=8d5b71707c';
+import { drawIcon, namedIcon } from './motion.js?v=8d5b71707c';
 
 let launcher = null;
 

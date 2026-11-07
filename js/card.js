@@ -1,6 +1,6 @@
-import { GITHUB } from './github-data.js?v=997efecaa0';
-import { readStore, writeStore } from './dom.js?v=997efecaa0';
-import { drawIcon, namedIcon } from './motion.js?v=997efecaa0';
+import { GITHUB } from './github-data.js?v=8d5b71707c';
+import { readStore, writeStore } from './dom.js?v=8d5b71707c';
+import { drawIcon, namedIcon } from './motion.js?v=8d5b71707c';
 
 /**
  * 배경의 GitHub 카드. 포인터가 닿는 범위 안에서 카드는 스프링으로 기울고, 조명은 따로 따라온다.

@@ -36,14 +36,6 @@ export const WEB_APPS = [
     size: [520, 780],
   },
   {
-    id: 'escape2d',
-    name: 'Escape 2D (WIP)',
-    summary: '타르코프식 격자 인벤토리를 가진 탑다운 탈출 슈터',
-    icon: 'backpack',
-    url: 'https://ysh4267.github.io/escape-2d/',
-    size: [1280, 800],
-  },
-  {
     id: 'box',
     name: 'Box',
     summary: '누르면 툭 소리를 내며 튀어 오르는 상자',
@@ -52,11 +44,11 @@ export const WEB_APPS = [
     size: [1006, 782],
   },
   {
-    id: 'tutorial',
-    name: 'Tutorial',
+    id: 'machine',
+    name: 'Machine',
     summary: '마우스를 올리면 설명이 뜨고, 설명서를 넘기면 그 부분을 비춰 주는 기계',
     icon: 'book-open',
-    url: 'tutorial/',
+    url: 'machine/',
     size: [1280, 800],
   },
   {
